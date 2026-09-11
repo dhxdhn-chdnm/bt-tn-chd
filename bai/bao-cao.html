@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hướng dẫn Báo cáo — Thí Nghiệm Cơ Học Đất</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M3 3H61V49q0 12-12 12H3Z' fill='%23B0592A'/%3E%3Cpath d='M3 3H61V27H3Z' fill='%23234E80'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='6.5' stroke-linecap='round'%3E%3Ccircle cx='19' cy='24' r='9.5'/%3E%3Ccircle cx='32' cy='24' r='9.5'/%3E%3Ccircle cx='45' cy='24' r='9.5'/%3E%3Cpath d='M32 24H46'/%3E%3C/g%3E%3Cpath d='M6 47 20 42 34 47 48 42 60 47M6 55 20 50 34 55 48 50 60 55' fill='none' stroke='%23fff' stroke-width='4'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="../config.js" onerror="console.log('[TN] config.js not found')"></script>
+<style>
+:root{--P:#8B3A22;--Pdk:#5E2A1A;--Pmd:#A54C2C;--Plt:#F1E2DA;--G:#2E7D32;--Glt:#E7F0E6;--Gdk:#1B5E20;--R:#B0281F;--A:#B0722A;--Alt:#F5E9D6;--Adk:#7C5218;--bg:#CDB68C;--sur:#FBF6EA;--brd:#BCA277;--muted:#5F5340;--text:#241F16;--sans:'Plus Jakarta Sans',sans-serif;--mono:'JetBrains Mono',monospace;--r:12px;--sh:0 2px 16px rgba(94,42,26,.14)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);font-family:var(--sans);color:var(--text);font-size:14px;line-height:1.65}
+.hdr{background:var(--Pdk);color:#fff;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.hdr-in{max-width:860px;margin:0 auto;padding:0 20px;height:58px;display:flex;align-items:center;gap:14px}
+.back-btn{color:rgba(255,255,255,.8);text-decoration:none;font-size:13px;display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.2)}
+.hdr-title h1{font-size:14px;font-weight:700}.hdr-title p{font-size:11px;color:rgba(255,255,255,.6)}
+.hdr-mark{width:28px;height:28px;flex-shrink:0}.hdr-mark svg{display:block;width:28px;height:28px}
+main{max-width:860px;margin:0 auto;padding:22px 20px 70px}
+.hero{background:linear-gradient(135deg,var(--Pdk),var(--Pmd));color:#fff;border-radius:14px;padding:22px 26px;margin-bottom:20px;box-shadow:0 4px 20px rgba(13,71,161,.22)}
+.hero h2{font-size:19px;font-weight:700;margin-bottom:5px}
+.hero p{font-size:12px;color:rgba(255,255,255,.82)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.chip{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:4px 11px;border-radius:20px;font-size:11px;font-family:var(--mono)}
+.card{background:var(--sur);border:1px solid var(--brd);border-radius:var(--r);padding:18px 22px;margin-bottom:16px;box-shadow:var(--sh)}
+.card h3{font-size:15px;font-weight:700;color:var(--Pdk);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.card h4{font-size:13px;font-weight:700;margin:14px 0 6px;color:var(--P)}
+.card p,.card li{font-size:13px}
+.card ol,.card ul{margin:6px 0 6px 22px}
+.card li{margin-bottom:4px}
+.note{border-left:4px solid var(--A);background:var(--Alt);border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:#5a3e00;margin:12px 0;line-height:1.7}
+.info{border-left:4px solid var(--P);background:var(--Plt);border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:#1a3a6c;margin:12px 0;line-height:1.7}
+code{font-family:var(--mono);background:var(--Plt);padding:1px 6px;border-radius:4px;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+th,td{border:1px solid var(--brd);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:var(--Plt);color:var(--P);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+td.n{font-family:var(--mono);text-align:center;white-space:nowrap}
+tfoot td{font-weight:700;background:#FBF7EE}
+.formula{font-family:var(--mono);background:var(--Plt);border-left:3px solid var(--P);border-radius:0 6px 6px 0;padding:8px 12px;margin:6px 0;font-size:12px;overflow-x:auto}
+/* ── Công cụ dựng biểu đồ ── */
+.tool{border:1.5px solid var(--brd);border-radius:10px;overflow:hidden;margin-top:14px}
+.tool-hd{background:var(--Pdk);color:#fff;padding:10px 16px;font-weight:700;font-size:13px;display:flex;align-items:center;gap:8px}
+.tool-bd{padding:14px 16px;background:#fff}
+.io-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.io-f label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:3px}
+.io-f input{width:100%;padding:7px 9px;border:1.5px solid var(--brd);border-radius:7px;font-family:var(--mono);font-size:13px;outline:none;background:#FFFDF8}
+.io-f input:focus{border-color:var(--P)}
+.dtbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;margin:6px 0}
+.dtbl th,.dtbl td{border:1px solid var(--brd);padding:4px 8px;text-align:center}
+.dtbl th{background:var(--Pdk);color:#fff;font-family:var(--sans);font-size:10px;text-transform:uppercase}
+.dtbl input{width:78px;padding:5px 6px;border:1.5px solid var(--brd);border-radius:6px;font-family:var(--mono);font-size:12px;text-align:center;outline:none;background:#FFFDF8}
+.dtbl input:focus{border-color:var(--P)}
+.dtbl td.calc{background:var(--Plt);color:var(--Pdk);font-weight:700}
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
+@media(max-width:640px){.chart-row{grid-template-columns:1fr}}
+.chart-box{border:1px solid var(--brd);border-radius:8px;padding:8px;background:#fff}
+.chart-box svg{width:100%;height:auto;display:block}
+.chart-box .cap{font-size:10.5px;color:var(--muted);text-align:center;margin-top:4px}
+.chart-box .btn-dl{margin-top:6px;width:100%;padding:6px;border:1px solid var(--brd);border-radius:6px;background:var(--Plt);color:var(--Pdk);font-family:var(--sans);font-size:11px;font-weight:700;cursor:pointer}
+.chart-box .btn-dl:hover{background:var(--brd)}
+.result{margin-top:12px;background:var(--Glt);border-left:4px solid var(--G);border-radius:0 8px 8px 0;padding:10px 14px;font-size:13px;line-height:1.9}
+.result b{color:var(--Gdk);font-family:var(--mono)}
+.mini-note{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6}
+@media print{.tool-hd{-webkit-print-color-adjust:exact;print-color-adjust:exact}.btn-dl,.back-btn{display:none}}
+@media(max-width:560px){.hero h2{font-size:16px}table{font-size:11px}}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <div class="hdr-in">
+    <a href="../index.html" class="back-btn"><i class="ti ti-arrow-left"></i> Trang chủ</a>
+    <div class="hdr-mark" aria-label="GEO"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="geoB"><path d="M3 3H61V49q0 12-12 12H3Z"/></clipPath></defs><g clip-path="url(#geoB)"><rect width="64" height="27" fill="#234E80"/><rect y="27" width="64" height="37" fill="#B0592A"/><g fill="none" stroke="#fff" stroke-width="6.5" stroke-linecap="round"><circle cx="19" cy="24" r="9.5"/><circle cx="32" cy="24" r="9.5"/><circle cx="45" cy="24" r="9.5"/><path d="M32 24H46"/><path d="M19 33.5q0 6 6 6"/></g><path d="M0 47 16 41 32 47 48 41 64 47" fill="none" stroke="#fff" stroke-width="4.5"/><path d="M0 55 16 49 32 55 48 49 64 55" fill="none" stroke="#fff" stroke-width="4.5"/></g><path d="M3 3H61V49q0 12-12 12H3Z" fill="none" stroke="#111" stroke-width="4"/></svg></div>
+    <div class="hdr-title"><h1>Hướng dẫn Báo cáo thí nghiệm cá nhân</h1><p>Mục 3.3 · Miền C · Trọng số 50%</p></div>
+  </div>
+</header>
+<main>
+  <div class="hero">
+    <h2><i class="ti ti-file-description" style="vertical-align:-3px;margin-right:6px"></i>Báo cáo thí nghiệm cá nhân</h2>
+    <p>Cắt phẳng (Direct Shear) &amp; Nén cố kết (Consolidation) · nộp PDF qua LMS sau 1 tuần</p>
+    <div class="chips">
+      <span class="chip">Bloom: Áp dụng · Phân tích · Đánh giá</span>
+      <span class="chip">Rubric 100 điểm</span>
+      <span class="chip">Số liệu riêng theo MSSV</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><i class="ti ti-fingerprint"></i> Số liệu đầu vào — riêng từng sinh viên</h3>
+    <div class="info">Mẫu thí nghiệm cả 2 bài: <b>đất sét chế bị trong phòng</b> (cố kết thường). Tỷ trọng hạt Δ, khối lượng thể tích γ₀, độ ẩm W, hệ số nở ngang do <b>giảng viên cung cấp</b>.</div>
+    <p>Mỗi SV nhận một bộ số liệu <b>riêng, sinh theo MSSV</b> (hệ số biến thiên ±5–10% so với số liệu gốc của nhóm). Giảng viên phát qua LMS/email, gồm:</p>
+    <ul>
+      <li><code>01_CatPhang.csv</code> — 3 mẫu cắt ở σ = 100 / 200 / 300 kPa: cột <code>dh</code>, <code>T</code>, <code>dv</code></li>
+      <li><code>02_NenCoKet_eLogP.csv</code> — số đọc đồng hồ lún ở cuối mỗi cấp tải (50 / 100 / 200 / 400 kPa)</li>
+      <li><code>03_NenCoKet_Taylor.csv</code> — số đọc lún theo thời gian cho 1 cấp tải</li>
+      <li><code>DE_BAI.txt</code> — đề riêng + các hằng số (h₀ = 20 mm, Δ, γ₀, W, hệ số nở ngang…)</li>
+    </ul>
+    <div class="note">⚠️ Dùng số liệu <b>không phải của MSSV mình</b> → <b>0 điểm</b> phần xử lý số liệu. Giảng viên có khóa đáp án đối chiếu từng SV.</div>
+  </div>
+
+  <div class="card">
+    <h3><i class="ti ti-math-function"></i> PHẦN A — Xử lý số liệu <span style="font-weight:500;color:var(--muted);font-size:12px">(Bloom: Áp dụng)</span></h3>
+
+    <h4>A1 · Thí nghiệm Cắt phẳng</h4>
+    <ol>
+      <li>Tính ứng suất cắt <span class="formula" style="display:inline-block;margin:0;padding:2px 8px">τ = T / A</span> cho từng điểm; lập bảng τ – δh.</li>
+      <li>Vẽ 3 đường cong τ – δh (3 mẫu) trên cùng hệ trục.</li>
+      <li>Xác định τ<sub>max</sub> (đỉnh) và τ<sub>residual</sub> (dư, nếu quan sát thấy) cho mỗi mẫu.</li>
+      <li>Vẽ đường bao phá hoại Coulomb, hồi quy tuyến tính 3 điểm (σ, τ<sub>max</sub>):
+        <div class="formula">τ = c + σ·tan φ   →   tan φ = độ dốc ;  c = tung độ gốc</div>
+      </li>
+    </ol>
+
+    <h4>A2 · Thí nghiệm Nén cố kết</h4>
+    <ol>
+      <li>Lập bảng hệ số rỗng e theo từng cấp tải:
+        <div class="formula">e = e₀ − (ΔH / H₀)·(1 + e₀)</div>
+      </li>
+      <li>Vẽ đường cong e – log(p).</li>
+      <li>Xác định C<sub>c</sub> (chỉ số nén), C<sub>s</sub> (chỉ số nở) và p<sub>c</sub> (áp lực tiền cố kết — phương pháp Casagrande).</li>
+      <li>Vẽ đường cong s – √t cho một cấp tải, xác định t₅₀ và C<sub>v</sub> (phương pháp Taylor):
+        <div class="formula">C<sub>v</sub> = 0.197 · H<sub>dr</sub>² / t₅₀</div>
+      </li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h3><i class="ti ti-bulb"></i> PHẦN B — Phân tích &amp; Ứng dụng <span style="font-weight:500;color:var(--muted);font-size:12px">(Bloom: Phân tích, Đánh giá)</span></h3>
+    <ol>
+      <li><b>B1.</b> Nhận xét dạng đường cong τ–δh từng mẫu: đất có tính <b>giòn</b> hay <b>dẻo</b>? Có đỉnh rõ hay tăng đơn điệu? Thể tích co hay nở khi cắt? Giải thích dựa trên bản chất mẫu <b>sét chế bị (cố kết thường)</b>.</li>
+      <li><b>B2.</b> Phân tích ý nghĩa của φ và c: loại đất này dùng thiết kế công trình gì? Ví dụ cụ thể (móng cọc, tường chắn, mái dốc).</li>
+      <li><b>B3.</b> Từ C<sub>c</sub> của mẫu, tính độ lún cố kết sơ cấp S nếu tải công trình tăng thêm Δp = 80 kPa trên lớp đất dày H = 3 m
+        <span style="color:var(--muted)">(dùng σ′<sub>v0</sub> trong DE_BAI.txt; nếu σ′<sub>v0</sub> + 80 vượt p<sub>c</sub> thì tách đoạn C<sub>s</sub> và C<sub>c</sub>)</span>.</li>
+      <li><b>B4.</b> So sánh C<sub>v</sub> với giá trị điển hình trong tài liệu: đất cố kết nhanh hay chậm? Tính t₉₀ nếu H<sub>dr</sub> = 0.5 m
+        <div class="formula">t₉₀ = 0.848 · H<sub>dr</sub>² / C<sub>v</sub></div>
+      </li>
+      <li><b>B5.</b> <span style="color:var(--Adk);font-weight:700">(Câu hỏi mở — 10đ)</span> Nếu công trình xây trên lớp đất này trong điều kiện <b>không thoát nước</b> (undrained loading), thông số nào nên dùng để thiết kế và tại sao?</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h3><i class="ti ti-checklist"></i> Rubric chấm báo cáo — 100 điểm</h3>
+    <table>
+      <thead><tr><th>#</th><th>Tiêu chí</th><th>Điểm</th><th>Bloom</th><th>Minh chứng CO</th></tr></thead>
+      <tbody>
+        <tr><td class="n">A1</td><td>Tính toán và bảng số liệu đúng</td><td class="n">20</td><td>Áp dụng</td><td>CO1 — Tính toán thông số TN</td></tr>
+        <tr><td class="n">A2</td><td>Vẽ đồ thị đúng, đủ, có chú thích</td><td class="n">15</td><td>Áp dụng</td><td>CO1 — Xử lý số liệu</td></tr>
+        <tr><td class="n">B1</td><td>Nhận xét hiện tượng có căn cứ</td><td class="n">15</td><td>Phân tích</td><td>CO2 — Giải thích hiện tượng</td></tr>
+        <tr><td class="n">B2</td><td>Phân tích ý nghĩa và ứng dụng</td><td class="n">20</td><td>Đánh giá</td><td>CO3 — Ứng dụng kết quả TN</td></tr>
+        <tr><td class="n">B3</td><td>Tính lún S đúng công thức</td><td class="n">15</td><td>Áp dụng</td><td>CO3 — Kết nối TN với thiết kế</td></tr>
+        <tr><td class="n">B4</td><td>So sánh và phân tích C<sub>v</sub>, t₉₀</td><td class="n">10</td><td>Phân tích</td><td>CO2 — Tư duy phản biện</td></tr>
+        <tr><td class="n">B5</td><td>Câu hỏi mở — lập luận logic</td><td class="n">5</td><td>Đánh giá / Sáng tạo</td><td>CO3 — Tư duy bậc cao</td></tr>
+      </tbody>
+      <tfoot><tr><td colspan="2">TỔNG</td><td class="n">100</td><td colspan="2"></td></tr></tfoot>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3><i class="ti ti-chart-histogram"></i> Công cụ dựng biểu đồ báo cáo</h3>
+    <p>Nhập số liệu đo được của <b>chính bạn</b> (theo mẫu báo cáo <i>BC chính quy 2025</i>) → trang tự tính và vẽ biểu đồ. Bấm <b>Tải ảnh</b> dưới mỗi biểu đồ để chèn vào file báo cáo, hoặc <button onclick="window.print()" style="border:1px solid var(--brd);background:var(--Plt);border-radius:6px;padding:2px 8px;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer">In / Lưu PDF cả trang</button>.</p>
+    <div class="note">Đây là công cụ hỗ trợ vẽ hình — <b>không thay báo cáo</b>. Bạn vẫn phải trình bày cách tính, nhận xét (B1–B5) và nộp PDF qua LMS.</div>
+
+    <!-- ══ BÀI 1 — Đường bao Coulomb ══ -->
+    <div class="tool">
+      <div class="tool-hd"><i class="ti ti-cut"></i> Bài 1 — Cắt đất trực tiếp · đường bao Coulomb τ = c + σ·tanφ</div>
+      <div class="tool-bd">
+        <div class="io-grid">
+          <div class="io-f"><label>Hệ số vòng ứng biến C₀ (kPa/vạch)</label><input id="b1-co" type="number" step="any" value="1" oninput="B1.calc()"></div>
+        </div>
+        <table class="dtbl" id="b1-tbl">
+          <thead><tr><th>Mẫu</th><th>Áp lực nén σ (kPa)</th><th>Biến dạng R_max (vạch/số đọc)</th><th>Sức chống cắt τ_max = C₀·R_max (kPa)</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="chart-row">
+          <div class="chart-box">
+            <div id="b1-chart"></div>
+            <div class="cap">Biểu đồ τ_max – σ &amp; đường bao Coulomb</div>
+            <button class="btn-dl" onclick="dlChart('b1-chart','BieuDo_Bai1_Coulomb')"><i class="ti ti-download"></i> Tải ảnh PNG</button>
+          </div>
+          <div>
+            <div class="result" id="b1-res">Nhập C₀ và R_max để xem kết quả…</div>
+            <div class="mini-note">φ, c xác định bằng <b>hồi quy tuyến tính bình phương tối thiểu</b> qua các điểm (σ, τ_max). Đường bao vẽ từ (0 ; c) đến (σ_max ; c + σ_max·tanφ).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ BÀI 2 — Đường cong nén lún ══ -->
+    <div class="tool">
+      <div class="tool-hd"><i class="ti ti-arrow-bar-to-down"></i> Bài 2 — Nén không nở hông · đường cong nén lún e = f(σ)</div>
+      <div class="tool-bd">
+        <div class="io-grid">
+          <div class="io-f"><label>Tỉ trọng hạt Δ</label><input id="b2-delta" type="number" step="any" value="2.70" oninput="B2.calc()"></div>
+          <div class="io-f"><label>Độ ẩm W (%)</label><input id="b2-w" type="number" step="any" placeholder="vd 28" oninput="B2.calc()"></div>
+          <div class="io-f"><label>Dung trọng tự nhiên γ₀ (g/cm³)</label><input id="b2-g0" type="number" step="any" placeholder="vd 1.85" oninput="B2.calc()"></div>
+          <div class="io-f"><label>Dung trọng nước γ_w (g/cm³)</label><input id="b2-gw" type="number" step="any" value="1" oninput="B2.calc()"></div>
+          <div class="io-f"><label>Chiều cao mẫu ban đầu h₀ (mm)</label><input id="b2-h0" type="number" step="any" value="20" oninput="B2.calc()"></div>
+        </div>
+        <div class="formula">e₀ = Δ·γ_w·(1 + 0,01·W) / γ₀ − 1 &nbsp;·&nbsp; eᵢ = e₀ − (Sᵢ/h₀)(1 + e₀) &nbsp;·&nbsp; a = (eᵢ − eᵢ₊₁)/(σᵢ₊₁ − σᵢ) &nbsp;·&nbsp; E = (1 + eᵢ)/a</div>
+        <table class="dtbl" id="b2-tbl">
+          <thead><tr><th>Cấp tải σ (kPa)</th><th>Độ lún tích luỹ Sᵢ (mm)</th><th>Hệ số rỗng eᵢ</th><th>Hệ số nén a (kPa⁻¹)</th><th>Môđun E (kPa)</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="chart-row">
+          <div class="chart-box">
+            <div id="b2-chart-lin"></div>
+            <div class="cap">e – σ (trục thường)</div>
+            <button class="btn-dl" onclick="dlChart('b2-chart-lin','BieuDo_Bai2_e-sigma')"><i class="ti ti-download"></i> Tải ảnh PNG</button>
+          </div>
+          <div class="chart-box">
+            <div id="b2-chart-log"></div>
+            <div class="cap">e – lg σ (bán logarit) → C_c, C_s</div>
+            <button class="btn-dl" onclick="dlChart('b2-chart-log','BieuDo_Bai2_e-logp')"><i class="ti ti-download"></i> Tải ảnh PNG</button>
+          </div>
+        </div>
+        <div class="result" id="b2-res">Nhập W, γ₀ và độ lún Sᵢ để xem kết quả…</div>
+        <div class="mini-note">Đơn vị a ở đây là kPa⁻¹ (nhân 10³ để ra MPa⁻¹). Môđun E theo công thức mẫu; nếu GV yêu cầu hệ số điều chỉnh β cho đất dính thì nhân thêm β vào E.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><i class="ti ti-upload"></i> Nộp bài &amp; chống sao chép</h3>
+    <ul>
+      <li>File PDF, đặt tên <code>MSSV_HoTen_TNCHT.pdf</code></li>
+      <li>Nộp qua LMS (Moodle / Canvas / Google Classroom) — hệ thống ghi thời gian nộp</li>
+      <li>Hạn nộp: <b>1 tuần</b> sau buổi thực hành</li>
+      <li>Chống sao chép: số liệu đầu vào khác nhau → kết quả khác nhau; câu B2, B5 mang tính phân tích cá nhân; có thể phỏng vấn ngẫu nhiên 10–15% SV</li>
+    </ul>
+    <div class="info">Trang này chỉ là hướng dẫn — <b>không nộp bài ở đây</b>. Báo cáo nộp qua LMS theo quy định của giảng viên.</div>
+  </div>
+</main>
+
+<script>
+/* ══════════════ CÔNG CỤ DỰNG BIỂU ĐỒ BÁO CÁO ══════════════ */
+function fmt(v){ if(v===0)return '0'; var a=Math.abs(v);
+  if(a>=100)return String(Math.round(v));
+  if(a>=10) return String(Math.round(v*10)/10);
+  return String(Math.round(v*1000)/1000); }
+function niceMax(v){ if(!isFinite(v)||v<=0)return 1;
+  var e=Math.pow(10,Math.floor(Math.log10(v))), n=v/e;
+  var m = n<=1?1 : n<=2?2 : n<=2.5?2.5 : n<=5?5 : 10;
+  return m*e; }
+function lsq(xs,ys){ var n=xs.length; if(n<2)return null;
+  var sx=0,sy=0,sxx=0,sxy=0,i;
+  for(i=0;i<n;i++){sx+=xs[i];sy+=ys[i];sxx+=xs[i]*xs[i];sxy+=xs[i]*ys[i];}
+  var d=n*sxx-sx*sx; if(d===0)return null;
+  var slope=(n*sxy-sx*sy)/d, inter=(sy-slope*sx)/n, yb=sy/n, tot=0,res=0;
+  for(i=0;i<n;i++){var f=slope*xs[i]+inter; tot+=(ys[i]-yb)*(ys[i]-yb); res+=(ys[i]-f)*(ys[i]-f);}
+  return {slope:slope,inter:inter,r2: tot? 1-res/tot : 1}; }
+
+function svgChart(o){
+  var w=o.w||440,h=o.h||300, L=54,Rm=16,T=12,B=42;
+  var pw=w-L-Rm, ph=h-T-B, lg=o.logX;
+  var xmn=o.xMin,xmx=o.xMax,ymn=o.yMin,ymx=o.yMax;
+  function sx(v){ var t=lg?(Math.log10(v)-Math.log10(xmn))/(Math.log10(xmx)-Math.log10(xmn)):(v-xmn)/(xmx-xmn); return L+t*pw; }
+  function sy(v){ var t=(v-ymn)/(ymx-ymn); return T+ph-t*ph; }
+  var s='<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" font-family="Arial, sans-serif">';
+  s+='<rect width="'+w+'" height="'+h+'" fill="#ffffff"/>';
+  (o.xTicks||[]).forEach(function(xv){ var X=sx(xv);
+    s+='<line x1="'+X.toFixed(1)+'" y1="'+T+'" x2="'+X.toFixed(1)+'" y2="'+(T+ph)+'" stroke="#ece3d2" stroke-width="1"/>';
+    s+='<text x="'+X.toFixed(1)+'" y="'+(T+ph+15)+'" font-size="10" fill="#5F5340" text-anchor="middle">'+fmt(xv)+'</text>'; });
+  (o.yTicks||[]).forEach(function(yv){ var Y=sy(yv);
+    s+='<line x1="'+L+'" y1="'+Y.toFixed(1)+'" x2="'+(L+pw)+'" y2="'+Y.toFixed(1)+'" stroke="#ece3d2" stroke-width="1"/>';
+    s+='<text x="'+(L-6)+'" y="'+(Y+3.5).toFixed(1)+'" font-size="10" fill="#5F5340" text-anchor="end">'+fmt(yv)+'</text>'; });
+  s+='<line x1="'+L+'" y1="'+(T+ph)+'" x2="'+(L+pw)+'" y2="'+(T+ph)+'" stroke="#5E2A1A" stroke-width="1.5"/>';
+  s+='<line x1="'+L+'" y1="'+T+'" x2="'+L+'" y2="'+(T+ph)+'" stroke="#5E2A1A" stroke-width="1.5"/>';
+  s+='<text x="'+(L+pw/2)+'" y="'+(h-5)+'" font-size="11" fill="#241F16" text-anchor="middle" font-weight="bold">'+(o.xLabel||'')+'</text>';
+  s+='<text x="13" y="'+(T+ph/2)+'" font-size="11" fill="#241F16" text-anchor="middle" font-weight="bold" transform="rotate(-90 13 '+(T+ph/2)+')">'+(o.yLabel||'')+'</text>';
+  (o.lines||[]).forEach(function(ln){
+    s+='<line x1="'+sx(ln.x1).toFixed(1)+'" y1="'+sy(ln.y1).toFixed(1)+'" x2="'+sx(ln.x2).toFixed(1)+'" y2="'+sy(ln.y2).toFixed(1)+'" stroke="#234E80" stroke-width="2"/>'; });
+  if(o.connect && o.pts && o.pts.length>1){
+    var d=o.pts.map(function(p,i){return (i?'L':'M')+sx(p.x).toFixed(1)+' '+sy(p.y).toFixed(1);}).join(' ');
+    s+='<path d="'+d+'" fill="none" stroke="#A54C2C" stroke-width="2"/>'; }
+  (o.pts||[]).forEach(function(p){
+    s+='<circle cx="'+sx(p.x).toFixed(1)+'" cy="'+sy(p.y).toFixed(1)+'" r="4" fill="#B0281F" stroke="#fff" stroke-width="1"/>';
+    if(p.t) s+='<text x="'+(sx(p.x)+7).toFixed(1)+'" y="'+(sy(p.y)-6).toFixed(1)+'" font-size="9" fill="#5E2A1A">'+p.t+'</text>'; });
+  return s+'</svg>';
+}
+
+var B1={
+  rows:[100,200,300],
+  init:function(){
+    document.querySelector('#b1-tbl tbody').innerHTML=this.rows.map(function(s,i){
+      return '<tr><td>'+(i+1)+'</td>'
+        +'<td><input type="number" step="any" id="b1s'+i+'" value="'+s+'" oninput="B1.calc()"></td>'
+        +'<td><input type="number" step="any" id="b1r'+i+'" placeholder="?" oninput="B1.calc()"></td>'
+        +'<td class="calc" id="b1t'+i+'">–</td></tr>'; }).join('');
+    this.calc();
+  },
+  calc:function(){
+    var co=parseFloat(document.getElementById('b1-co').value);
+    var xs=[],ys=[],pts=[],i;
+    for(i=0;i<this.rows.length;i++){
+      var s=parseFloat(document.getElementById('b1s'+i).value);
+      var r=parseFloat(document.getElementById('b1r'+i).value);
+      var t=(!isNaN(co)&&!isNaN(r))?co*r:NaN;
+      document.getElementById('b1t'+i).textContent=isNaN(t)?'–':fmt(t);
+      if(!isNaN(s)&&!isNaN(t)){xs.push(s);ys.push(t);pts.push({x:s,y:t,t:'('+fmt(s)+'; '+fmt(t)+')'});}
+    }
+    var xmax=niceMax(Math.max.apply(null,xs.concat([1])));
+    var ymax=niceMax(Math.max.apply(null,ys.concat([1])));
+    var fit=xs.length>=2?lsq(xs,ys):null, lines=[];
+    if(fit) lines.push({x1:0,y1:fit.inter,x2:xmax,y2:fit.inter+fit.slope*xmax});
+    var xt=[0],yt=[0],k;
+    for(k=1;k<=4;k++){xt.push(xmax/4*k);yt.push(ymax/4*k);}
+    document.getElementById('b1-chart').innerHTML=svgChart({
+      xMin:0,xMax:xmax,yMin:0,yMax:ymax,xTicks:xt,yTicks:yt,
+      xLabel:'σ (kPa)',yLabel:'τ_max (kPa)',pts:pts,lines:lines});
+    var res=document.getElementById('b1-res');
+    if(fit){
+      var phi=Math.atan(fit.slope)*180/Math.PI;
+      res.innerHTML='tan φ = <b>'+(Math.round(fit.slope*1000)/1000)+'</b> → φ = <b>'+(Math.round(phi*10)/10)+'°</b><br>'
+        +'Lực dính c = <b>'+(Math.round(fit.inter*10)/10)+' kPa</b>'
+        +(fit.inter<0?' <span style="color:var(--R)">(âm — kiểm tra số liệu, có thể lấy c ≈ 0)</span>':'')+'<br>'
+        +'Phương trình: <b>τ = '+(Math.round(fit.inter*10)/10)+' + σ·'+(Math.round(fit.slope*1000)/1000)+'</b> &nbsp; (R² = '+(Math.round(fit.r2*1000)/1000)+')';
+    } else res.textContent='Cần ít nhất 2 mẫu có đủ σ và R_max.';
+  }
+};
+
+var B2={
+  loads:[50,100,200,400],
+  init:function(){
+    document.querySelector('#b2-tbl tbody').innerHTML=this.loads.map(function(s,i){
+      return '<tr><td>'+s+'</td>'
+        +'<td><input type="number" step="any" id="b2S'+i+'" placeholder="?" oninput="B2.calc()"></td>'
+        +'<td class="calc" id="b2e'+i+'">–</td><td class="calc" id="b2a'+i+'">–</td><td class="calc" id="b2E'+i+'">–</td></tr>'; }).join('');
+    this.calc();
+  },
+  calc:function(){
+    var D=parseFloat(document.getElementById('b2-delta').value),
+        W=parseFloat(document.getElementById('b2-w').value),
+        g0=parseFloat(document.getElementById('b2-g0').value),
+        gw=parseFloat(document.getElementById('b2-gw').value),
+        h0=parseFloat(document.getElementById('b2-h0').value);
+    var e0=(!isNaN(D)&&!isNaN(W)&&!isNaN(g0)&&!isNaN(gw)&&g0>0)? D*gw*(1+0.01*W)/g0-1 : NaN;
+    var es=[],i,j;
+    for(i=0;i<this.loads.length;i++){
+      var si=parseFloat(document.getElementById('b2S'+i).value);
+      var ei=(!isNaN(e0)&&!isNaN(si)&&!isNaN(h0)&&h0>0)? e0-(si/h0)*(1+e0) : NaN;
+      es.push(ei);
+      document.getElementById('b2e'+i).textContent=isNaN(ei)?'–':(Math.round(ei*1000)/1000);
+    }
+    for(j=0;j<this.loads.length;j++){
+      var aEl=document.getElementById('b2a'+j),EEl=document.getElementById('b2E'+j);
+      if(j<this.loads.length-1 && !isNaN(es[j]) && !isNaN(es[j+1])){
+        var a=(es[j]-es[j+1])/(this.loads[j+1]-this.loads[j]);
+        var E=a!==0?(1+es[j])/a:NaN;
+        aEl.textContent=a.toExponential(3);
+        EEl.textContent=isFinite(E)?fmt(E):'–';
+      } else {aEl.textContent='–';EEl.textContent='–';}
+    }
+    var lin=[],lgp=[],k;
+    if(!isNaN(e0)) lin.push({x:0,y:e0,t:'e₀'});
+    for(k=0;k<this.loads.length;k++) if(!isNaN(es[k])){ lin.push({x:this.loads[k],y:es[k]}); lgp.push({x:this.loads[k],y:es[k]}); }
+    // Luôn vẽ khung trục (giống Bài 1) — có điểm thì vẽ điểm, chưa có thì vẫn hiện khung mặc định
+    var allE=lin.map(function(p){return p.y;});
+    var emn,emx;
+    if(allE.length){ emn=Math.min.apply(null,allE); emx=Math.max.apply(null,allE); }
+    else { emn=0.4; emx=1.0; }
+    var pad=(emx-emn)*0.15||0.05;
+    var yMin=Math.max(0,Math.floor((emn-pad)*20)/20), yMax=Math.ceil((emx+pad)*20)/20;
+    if(yMax<=yMin) yMax=yMin+0.1;
+    var yt=[],st=(yMax-yMin)/5,t;
+    for(t=0;t<=5;t++) yt.push(Math.round((yMin+st*t)*1000)/1000);
+    document.getElementById('b2-chart-lin').innerHTML=svgChart({
+      xMin:0,xMax:450,yMin:yMin,yMax:yMax,xTicks:[0,50,100,200,300,400],yTicks:yt,
+      xLabel:'σ (kPa)',yLabel:'Hệ số rỗng e',pts:lin,connect:true});
+    document.getElementById('b2-chart-log').innerHTML=svgChart({
+      logX:true,xMin:10,xMax:600,yMin:yMin,yMax:yMax,
+      xTicks:[10,20,50,100,200,400],yTicks:yt,
+      xLabel:'σ (kPa) — thang lg',yLabel:'Hệ số rỗng e',pts:lgp,connect:true});
+    var res=document.getElementById('b2-res');
+    if(!isNaN(e0)){
+      res.innerHTML='Hệ số rỗng ban đầu e₀ = <b>'+(Math.round(e0*1000)/1000)+'</b>'
+        +(e0<=0?' <span style="color:var(--R)">(≤ 0 — kiểm tra lại Δ, W, γ₀)</span>':'')
+        +'<br><span style="font-size:11px;color:var(--muted)">Bảng eᵢ · a · E ở trên. Chỉ số nén C_c và chỉ số nở C_s = độ dốc các đoạn thẳng trên biểu đồ e – lg σ (C = Δe / Δlg σ).</span>';
+    } else res.textContent='Cần nhập đủ Δ, W, γ₀, γ_w (và h₀) để tính e₀.';
+  }
+};
+
+function dlChart(hostId,name){
+  var svg=document.querySelector('#'+hostId+' svg'); if(!svg){return;}
+  var xml=new XMLSerializer().serializeToString(svg);
+  var vb=svg.getAttribute('viewBox').split(/\s+/).map(Number), sc=2;
+  var Wd=vb[2]*sc, Hd=vb[3]*sc, img=new Image();
+  img.onload=function(){
+    var c=document.createElement('canvas'); c.width=Wd; c.height=Hd;
+    var x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,Wd,Hd); x.drawImage(img,0,0,Wd,Hd);
+    c.toBlob(function(b){ if(!b){return;}
+      var a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name+'.png';
+      document.body.appendChild(a); a.click();
+      setTimeout(function(){URL.revokeObjectURL(a.href); a.remove();},1500);
+    });
+  };
+  img.onerror=function(){ alert('Trình duyệt chặn xuất ảnh — hãy chụp màn hình biểu đồ, hoặc dùng nút In / Lưu PDF.'); };
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(xml);
+}
+
+window.addEventListener('load',function(){ B1.init(); B2.init(); });
+</script>
+</body>
+</html>

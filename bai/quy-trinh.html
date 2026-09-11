@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quy trình & Sơ đồ Thí nghiệm — Cơ Học Đất</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M3 3H61V49q0 12-12 12H3Z' fill='%23B0592A'/%3E%3Cpath d='M3 3H61V27H3Z' fill='%23234E80'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='6.5' stroke-linecap='round'%3E%3Ccircle cx='19' cy='24' r='9.5'/%3E%3Ccircle cx='32' cy='24' r='9.5'/%3E%3Ccircle cx='45' cy='24' r='9.5'/%3E%3Cpath d='M32 24H46'/%3E%3C/g%3E%3Cpath d='M6 47 20 42 34 47 48 42 60 47M6 55 20 50 34 55 48 50 60 55' fill='none' stroke='%23fff' stroke-width='4'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+:root{--P:#8B3A22;--Pdk:#5E2A1A;--Pmd:#A54C2C;--Plt:#F1E2DA;--G:#2E7D32;--Glt:#E7F0E6;--Gdk:#1B5E20;--R:#B0281F;--A:#B0722A;--Alt:#F5E9D6;--Adk:#7C5218;--bg:#CDB68C;--sur:#FBF6EA;--brd:#BCA277;--muted:#5F5340;--text:#241F16;--sans:'Plus Jakarta Sans',sans-serif;--mono:'JetBrains Mono',monospace;--r:12px;--sh:0 2px 16px rgba(94,42,26,.14)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);font-family:var(--sans);color:var(--text);font-size:14px;line-height:1.65}
+.hdr{background:var(--Pdk);color:#fff;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25)}
+.hdr-in{max-width:960px;margin:0 auto;padding:0 20px;height:58px;display:flex;align-items:center;gap:12px}
+.back-btn{color:rgba(255,255,255,.85);text-decoration:none;font-size:13px;display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.22)}
+.hdr-mark{width:28px;height:28px;flex-shrink:0}.hdr-mark svg{display:block;width:28px;height:28px}
+.hdr-title h1{font-size:14px;font-weight:700}.hdr-title p{font-size:11px;color:rgba(255,255,255,.6)}
+main{max-width:960px;margin:0 auto;padding:24px 20px 70px}
+.lead{background:linear-gradient(135deg,var(--Pdk),var(--Pmd));color:#fff;border-radius:14px;padding:22px 26px;margin-bottom:22px;box-shadow:0 4px 22px rgba(13,40,70,.3)}
+.lead h2{font-size:20px;font-weight:700;margin-bottom:5px}
+.lead p{font-size:13px;color:rgba(255,255,255,.85)}
+.exp{background:var(--sur);border:1px solid var(--brd);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:22px;overflow:hidden}
+.exp-hd{background:var(--A);color:#fff;padding:14px 22px;display:flex;align-items:center;gap:12px}
+.exp-hd .n{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-weight:700;font-family:var(--mono);flex-shrink:0}
+.exp-hd h3{font-size:16px;font-weight:700;flex:1}
+.exp-hd .en{font-size:11px;color:rgba(255,255,255,.8);font-style:italic}
+.exp-bd{padding:20px 22px}
+.grid2{display:grid;grid-template-columns:1.05fr .95fr;gap:22px;align-items:start}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.steps{counter-reset:st;list-style:none}
+.steps li{position:relative;padding:9px 0 9px 40px;border-bottom:1px dashed var(--brd);font-size:13px}
+.steps li:last-child{border-bottom:none}
+.steps li::before{counter-increment:st;content:"B" counter(st);position:absolute;left:0;top:8px;width:30px;height:22px;background:var(--Plt);color:var(--P);font-family:var(--mono);font-size:11px;font-weight:700;border-radius:5px;display:flex;align-items:center;justify-content:center}
+.steps b{color:var(--Pdk)}
+.fig{background:#fff;border:1px solid var(--brd);border-radius:10px;padding:12px}
+.fig svg{width:100%;height:auto;display:block}
+.fig-cap{font-size:11px;color:var(--muted);text-align:center;margin-top:8px;font-style:italic}
+.note{border-left:4px solid var(--A);background:var(--Alt);border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:#5a3a1e;margin:12px 0;line-height:1.7}
+.load-tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;margin-top:10px}
+.load-tbl th,.load-tbl td{border:1px solid var(--brd);padding:5px 10px;text-align:center}
+.load-tbl th{background:var(--Pdk);color:#fff}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:11.5px;color:var(--muted)}
+.legend span b{color:var(--Pdk);font-family:var(--mono)}
+.res{margin-top:14px;background:var(--Plt);border-left:4px solid var(--P);border-radius:0 8px 8px 0;padding:10px 14px;font-size:12.5px;line-height:1.7}
+.res b{color:var(--Pdk)}
+.svg-lbl{font:600 9px var(--sans);fill:#241F16}
+.svg-num{font:700 9px var(--mono);fill:#fff}
+.svg-mut{font:400 8.5px var(--sans);fill:#5F5340}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <div class="hdr-in">
+    <a href="../index.html" class="back-btn"><i class="ti ti-arrow-left"></i> Trang chủ</a>
+    <div class="hdr-mark" aria-label="GEO"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="geoQT"><path d="M3 3H61V49q0 12-12 12H3Z"/></clipPath></defs><g clip-path="url(#geoQT)"><rect width="64" height="27" fill="#234E80"/><rect y="27" width="64" height="37" fill="#B0592A"/><g fill="none" stroke="#fff" stroke-width="6.5" stroke-linecap="round"><circle cx="19" cy="24" r="9.5"/><circle cx="32" cy="24" r="9.5"/><circle cx="45" cy="24" r="9.5"/><path d="M32 24H46"/><path d="M19 33.5q0 6 6 6"/></g><path d="M0 47 16 41 32 47 48 41 64 47" fill="none" stroke="#fff" stroke-width="4.5"/><path d="M0 55 16 49 32 55 48 49 64 55" fill="none" stroke="#fff" stroke-width="4.5"/></g><path d="M3 3H61V49q0 12-12 12H3Z" fill="none" stroke="#111" stroke-width="4"/></svg></div>
+    <div class="hdr-title"><h1>Quy trình &amp; Sơ đồ Thí nghiệm</h1><p>Bộ môn Cơ học đất - Nền móng · ĐHXD Hà Nội</p></div>
+  </div>
+</header>
+<main>
+  <div class="lead">
+    <h2><i class="ti ti-clipboard-list" style="vertical-align:-3px;margin-right:6px"></i>Quy trình thực hiện &amp; sơ đồ thiết bị</h2>
+    <p>Tài liệu tham khảo trước khi làm bài trắc nghiệm — theo pano hướng dẫn thí nghiệm của Bộ môn (NH 2026–2027).</p>
+    <div style="margin-top:10px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:8px 12px;font-size:12px">
+      <b>Mẫu thí nghiệm:</b> cả hai bài dùng <b>đất sét chế bị trong phòng</b>. Các thông số (tỷ trọng hạt Δ, khối lượng thể tích γ, độ ẩm W, hệ số nở ngang) do giảng viên cung cấp.
+    </div>
+  </div>
+
+  <!-- ═══════════ BÀI 1 — CẮT ĐẤT TRỰC TIẾP ═══════════ -->
+  <div class="exp">
+    <div class="exp-hd">
+      <div class="n">B1</div>
+      <h3>Thí nghiệm Cắt phẳng (Direct Shear)<div class="en">Direct Shear Test — TCVN 4199:1995 · ASTM D3080</div></h3>
+    </div>
+    <div class="exp-bd">
+      <div class="grid2">
+        <div>
+          <ol class="steps">
+            <li>Lấy mẫu <b>đất sét chế bị</b> trong bình dưỡng ẩm làm thí nghiệm.</li>
+            <li>Đưa mẫu đất (trong dao vòng) vào <b>hộp cắt</b> — theo thứ tự: đá thấm dưới → mẫu đất → đá thấm trên → tấm truyền lực.</li>
+            <li>Lắp hộp cắt vào <b>máy cắt</b>; vít chặt 2 vít định vị nối hai nửa hộp. Gắn <b>đồng hồ đo chuyển vị ngang</b> (LVDT ngang) và <b>đồng hồ đo chuyển vị đứng</b> (thể tích) — căn về <b>0,00</b>.</li>
+            <li>Kiểm tra hệ thống gia tải thẳng đứng, sau đó <b>gia tải nén</b> σ. Thí nghiệm với <b>3 mẫu</b>, mỗi mẫu 1 cấp σ<sub>i</sub>. Chờ cố kết dưới tải đứng trước khi cắt.</li>
+            <li>Tháo <b>2 vít định vị</b> nối thớt trên và thớt dưới → tạo khe cắt; kiểm tra lại đồng hồ về <b>0,00</b>.</li>
+            <li>Cắt mẫu: quay đều tay quay (tốc độ cắt <b>đất sét 0,1–0,5 mm/phút</b>). Ghi mỗi 0,5 mm chuyển vị ngang: lực cắt T, δ<sub>h</sub>, δ<sub>v</sub>. Dừng khi đạt <b>6–8 mm</b> hoặc lực cắt giảm rõ sau đỉnh → ghi R<sub>max,i</sub>.</li>
+            <li>Tháo mẫu vừa cắt, làm sạch hộp, cân lại mẫu (độ ẩm sau TN); thay mẫu mới, lặp lại với cấp σ tiếp theo.</li>
+          </ol>
+          <table class="load-tbl">
+            <tr><th>Mẫu</th><th>1</th><th>2</th><th>3</th></tr>
+            <tr><td>σ<sub>i</sub> (kPa)</td><td>100</td><td>200</td><td>300</td></tr>
+          </table>
+          <div class="note">⚠ <b>Lỗi thường gặp:</b> quên tháo vít định vị → máy cắt hộp kim loại, hỏng thiết bị · đồng hồ không về 0 → lệch toàn bộ số liệu · cắt quá nhanh (sét thoát nước) → áp lực nước lỗ rỗng chưa tiêu tán · chưa chờ cố kết đủ → ứng suất hiệu quả thấp hơn thiết kế.</div>
+          <div class="res"><b>Kết quả:</b> τ<sub>max,i</sub> = C₀ · R<sub>max,i</sub> (C₀ — hệ số vòng ứng biến). Vẽ 3 điểm (σ<sub>i</sub>, τ<sub>max,i</sub>) → đường bao Coulomb <b>τ = c + σ·tanφ</b> → xác định c, φ.</div>
+        </div>
+
+        <div>
+          <div class="fig">
+            <svg viewBox="0 0 420 340" xmlns="http://www.w3.org/2000/svg">
+              <!-- khung cố định (frame + bệ) -->
+              <rect x="20" y="290" width="385" height="12" fill="#6b5842"/>
+              <rect x="40" y="50" width="9" height="240" fill="#6b5842"/>
+              <rect x="393" y="150" width="9" height="140" fill="#6b5842"/>
+              <rect x="36" y="46" width="165" height="7" fill="#6b5842"/>
+
+              <!-- đòn bẩy gia tải đứng (tỉ lệ ~1:10) -->
+              <line x1="70" y1="46" x2="70" y2="28" stroke="#6b5842" stroke-width="5"/>
+              <polygon points="70,28 63,19 77,19" fill="#5F5340"/>
+              <rect x="18" y="15" width="272" height="6" fill="#5F5340"/>
+              <line x1="255" y1="21" x2="255" y2="46" stroke="#5F5340" stroke-width="3"/>
+              <rect x="242" y="46" width="26" height="30" rx="2" fill="#7C3E18"/>
+              <text class="svg-mut" x="255" y="65" text-anchor="middle" fill="#fff" style="font-size:7.5px">quả cân</text>
+              <text class="svg-lbl" x="90" y="11" text-anchor="middle" style="font-size:8px">đòn bẩy 1:10</text>
+              <line x1="140" y1="21" x2="140" y2="160" stroke="#455A64" stroke-width="4"/>
+              <polygon points="140,150 132,140 148,140" fill="#455A64"/>
+              <text class="svg-lbl" x="152" y="112">P → σ</text>
+
+              <!-- nắp truyền lực -->
+              <rect x="95" y="160" width="90" height="9" rx="2" fill="#90A4AE" stroke="#455A64" stroke-width="1.5"/>
+
+              <!-- hộp cắt: nửa trên + nửa dưới -->
+              <rect x="75" y="169" width="130" height="28" fill="#CBB79A" stroke="#5D4037" stroke-width="2"/>
+              <rect x="75" y="197" width="130" height="28" fill="#CBB79A" stroke="#5D4037" stroke-width="2"/>
+              <rect x="87" y="173" width="106" height="6" fill="#B0BEC5"/>
+              <rect x="87" y="179" width="106" height="34" fill="#A9764B"/>
+              <text class="svg-lbl" x="140" y="199" text-anchor="middle" fill="#fff" style="font-size:8px">mẫu đất + dao vòng</text>
+              <rect x="87" y="213" width="106" height="6" fill="#B0BEC5"/>
+              <line x1="65" y1="197" x2="215" y2="197" stroke="#C0392B" stroke-width="1.6" stroke-dasharray="5,3"/>
+              <text class="svg-lbl" x="217" y="200" fill="#C0392B" style="font-size:8px">mặt cắt</text>
+              <circle cx="81" cy="197" r="3.3" fill="#173654"/><circle cx="199" cy="197" r="3.3" fill="#173654"/>
+
+              <!-- vòng ứng biến đo lực cắt (nối nửa trên tới khung phản lực) -->
+              <line x1="205" y1="183" x2="266" y2="183" stroke="#455A64" stroke-width="3"/>
+              <path d="M266 170 a13 13 0 1 1 0 26" fill="none" stroke="#455A64" stroke-width="3.5"/>
+              <circle cx="279" cy="169" r="8" fill="#fff" stroke="#455A64" stroke-width="2"/>
+              <text class="svg-mut" x="279" y="172" text-anchor="middle" style="font-size:7.5px">R</text>
+              <line x1="279" y1="183" x2="393" y2="183" stroke="#455A64" stroke-width="3"/>
+              <text class="svg-lbl" x="279" y="152" text-anchor="middle" style="font-size:8px">vòng ứng biến C₀</text>
+              <text class="svg-lbl" x="336" y="200" text-anchor="middle" style="font-size:8px">T = C₀·R</text>
+
+              <!-- đồng hồ đo chuyển vị đứng δv -->
+              <line x1="201" y1="53" x2="201" y2="150" stroke="#455A64" stroke-width="2"/>
+              <circle cx="201" cy="156" r="9" fill="#fff" stroke="#455A64" stroke-width="2"/>
+              <text class="svg-mut" x="201" y="159" text-anchor="middle" style="font-size:7.5px">δv</text>
+              <line x1="201" y1="165" x2="201" y2="169" stroke="#455A64" stroke-width="2"/>
+
+              <!-- carriage + con lăn + động cơ (chuyển vị ngang tốc độ khống chế) -->
+              <rect x="60" y="225" width="140" height="10" fill="#78716c"/>
+              <circle cx="75" cy="241" r="5" fill="#5F5340"/><circle cx="130" cy="241" r="5" fill="#5F5340"/><circle cx="185" cy="241" r="5" fill="#5F5340"/>
+              <rect x="40" y="247" width="200" height="6" fill="#6b5842"/>
+              <rect x="12" y="232" width="26" height="26" fill="#5a4632"/>
+              <text class="svg-mut" x="25" y="248" text-anchor="middle" fill="#fff" style="font-size:6.5px">động cơ</text>
+              <text class="svg-lbl" x="140" y="267" text-anchor="middle" style="font-size:8px">0,1–0,5 mm/phút (đất sét)</text>
+
+              <!-- đồng hồ đo chuyển vị ngang δh -->
+              <line x1="49" y1="212" x2="59" y2="212" stroke="#455A64" stroke-width="2"/>
+              <circle cx="63" cy="212" r="8" fill="#fff" stroke="#455A64" stroke-width="2"/>
+              <text class="svg-mut" x="63" y="215" text-anchor="middle" style="font-size:7.5px">δh</text>
+              <line x1="63" y1="220" x2="63" y2="225" stroke="#455A64" stroke-width="2"/>
+
+              <!-- bình dưỡng ẩm -->
+              <path d="M340 258 h32 v20 q0 5 -5 5 h-22 q-5 0 -5 -5 z" fill="#DCEBF7" stroke="#5F5340" stroke-width="1.5"/>
+              <rect x="347" y="252" width="18" height="7" fill="#8D6E4A"/>
+              <text class="svg-lbl" x="356" y="295" text-anchor="middle" style="font-size:8px">bình dưỡng ẩm</text>
+            </svg>
+            <div class="fig-cap">Sơ đồ máy cắt phẳng ứng biến khống chế — khung cố định phản lực qua vòng ứng biến C₀; carriage động cơ tạo chuyển vị ngang tốc độ không đổi (TCVN 4199:1995 · ASTM D3080)</div>
+          </div>
+          <div class="legend">
+            <span><b>1</b> mẫu đất + dao vòng</span><span><b>2</b> đá thấm trên/dưới</span>
+            <span><b>3</b> hộp cắt 2 nửa + 2 vít định vị (tháo trước khi cắt)</span>
+            <span><b>4</b> nắp truyền lực</span>
+            <span><b>5</b> đòn bẩy gia tải đứng (~1:10) + giá treo quả cân</span>
+            <span><b>6</b> vòng ứng biến C₀ — đọc R → T = C₀·R</span>
+            <span><b>7</b> đồng hồ đo chuyển vị ngang δh &amp; đứng δv</span>
+            <span><b>8</b> carriage + động cơ — tạo chuyển vị ngang tốc độ khống chế</span>
+            <span><b>9</b> bình dưỡng ẩm</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ BÀI 2 — NÉN CỐ KẾT (OEDOMETER) ═══════════ -->
+  <div class="exp">
+    <div class="exp-hd">
+      <div class="n">B2</div>
+      <h3>Thí nghiệm Nén cố kết (Oedometer)<div class="en">Consolidation / Oedometer Test — TCVN 4200:2012 · ASTM D2435</div></h3>
+    </div>
+    <div class="exp-bd">
+      <div class="grid2">
+        <div>
+          <ol class="steps">
+            <li>Mẫu <b>đất sét chế bị</b> được cho vào <b>dao vòng 50 cm²</b>, h₀ = <b>20 mm</b>. Đo/nhận từ GV: tỷ trọng hạt Δ, khối lượng thể tích, độ ẩm W, hệ số nở ngang.</li>
+            <li>Lắp vào <b>hộp nén</b> — theo thứ tự: đá thấm dưới → giấy lọc → mẫu đất trong ring → giấy lọc → đá thấm trên → tấm truyền lực.</li>
+            <li>Đưa hộp nén vào <b>máy nén Oedometer</b>. Đổ nước vào hộp để <b>bão hòa mẫu 10–30 phút</b>.</li>
+            <li>Gắn <b>đồng hồ đo lún</b> (đưa chân đồng hồ lên chốt ở nắp truyền lực); chỉnh về <b>0,00</b>.</li>
+            <li>Gia tải nén theo <b>4 cấp</b> (tỉ lệ tải mỗi cấp = 2). Mỗi cấp giữ <b>10 phút</b>: sau 10 phút coi như lún ổn định → chuyển cấp tiếp theo. Đọc số theo chuỗi thời gian (0 · 0,25 · 1 · 2 · 4 · 8 · 15 · 30 phút).</li>
+            <li>Sau cấp tải cuối → <b>dỡ tải hoàn toàn</b>. Vẽ sơ bộ đường s–√t và e–log σ tại chỗ.</li>
+          </ol>
+          <table class="load-tbl">
+            <tr><th>Cấp</th><th>1</th><th>2</th><th>3</th><th>4</th></tr>
+            <tr><td>σ<sub>i</sub> (kPa)</td><td>50</td><td>100</td><td>200</td><td>400</td></tr>
+          </table>
+          <div class="note">⏱ Mỗi cấp <b>10 phút</b> (bài thực hành). Đá thấm + giấy lọc tạo đường thoát nước 2 chiều (H<sub>dr</sub> = H/2) — không có đá thấm thì không xảy ra cố kết. Quên giấy lọc → đá thấm dính mẫu, không tháo được.</div>
+          <div class="res"><b>Kết quả:</b> e₀ = Δ·γ<sub>w</sub>(1 + 0,01W)/γ₀ − 1 ; e<sub>i</sub> = e₀ − (S<sub>i</sub>/h₀)(1 + e₀). Vẽ <b>e – log σ</b> → C<sub>c</sub>, C<sub>s</sub>, p<sub>c</sub> (Casagrande) ; vẽ <b>s – √t</b> → t₅₀, C<sub>v</sub> (Taylor). <i>Mẫu sét chế bị là cố kết thường → đường e–log σ gần thẳng theo nhánh nén nguyên thủy, p<sub>c</sub> nhỏ.</i></div>
+        </div>
+
+        <div>
+          <div class="fig">
+            <svg viewBox="0 0 420 300" xmlns="http://www.w3.org/2000/svg">
+              <!-- khung cố định -->
+              <rect x="20" y="255" width="270" height="12" fill="#6b5842"/>
+              <rect x="40" y="40" width="9" height="215" fill="#6b5842"/>
+              <rect x="36" y="36" width="165" height="7" fill="#6b5842"/>
+
+              <!-- đòn bẩy gia tải (tỉ lệ ~1:10) + giá treo quả cân -->
+              <line x1="70" y1="36" x2="70" y2="20" stroke="#6b5842" stroke-width="5"/>
+              <polygon points="70,20 63,11 77,11" fill="#5F5340"/>
+              <rect x="18" y="8" width="232" height="6" fill="#5F5340"/>
+              <line x1="230" y1="14" x2="230" y2="38" stroke="#5F5340" stroke-width="3"/>
+              <rect x="217" y="38" width="26" height="28" rx="2" fill="#7C3E18"/>
+              <text class="svg-mut" x="230" y="56" text-anchor="middle" fill="#fff" style="font-size:7.5px">quả cân</text>
+              <text class="svg-lbl" x="90" y="4" text-anchor="middle" style="font-size:8px">đòn bẩy 1:10</text>
+              <line x1="130" y1="14" x2="130" y2="118" stroke="#455A64" stroke-width="4"/>
+              <polygon points="130,108 122,98 138,98" fill="#455A64"/>
+              <text class="svg-lbl" x="142" y="80">P (theo cấp)</text>
+
+              <!-- hộp nén chứa nước -->
+              <rect x="65" y="128" width="150" height="90" fill="#DCEBF7" stroke="#234E80" stroke-width="1.5"/>
+              <text class="svg-mut" x="72" y="123" text-anchor="start" fill="#234E80" style="font-size:8px">hộp nén — nước bão hòa mẫu</text>
+
+              <!-- nắp truyền lực -->
+              <rect x="105" y="118" width="70" height="9" rx="2" fill="#90A4AE" stroke="#455A64" stroke-width="1.5"/>
+
+              <!-- đá thấm trên / giấy lọc / mẫu / giấy lọc / đá thấm dưới -->
+              <rect x="112" y="127" width="56" height="6" fill="#B0BEC5"/>
+              <rect x="112" y="133" width="56" height="2.5" fill="#FFF3E0"/>
+              <rect x="112" y="135.5" width="56" height="28" fill="#A9764B"/>
+              <text class="svg-lbl" x="140" y="151" text-anchor="middle" fill="#fff" style="font-size:8px">mẫu + dao vòng</text>
+              <rect x="112" y="163.5" width="56" height="2.5" fill="#FFF3E0"/>
+              <rect x="112" y="166" width="56" height="6" fill="#B0BEC5"/>
+
+              <!-- vòng thép giữ mẫu (chặn nở ngang) -->
+              <rect x="108" y="135.5" width="4" height="34.5" fill="#607D8B"/>
+              <rect x="168" y="135.5" width="4" height="34.5" fill="#607D8B"/>
+              <text class="svg-lbl" x="186" y="153" style="font-size:8px">vòng thép</text>
+
+              <!-- thoát nước 2 chiều -->
+              <line x1="140" y1="127" x2="140" y2="118" stroke="#234E80" stroke-width="2.2" marker-end="url(#arU)"/>
+              <line x1="140" y1="172" x2="140" y2="182" stroke="#234E80" stroke-width="2.2" marker-end="url(#arU2)"/>
+
+              <!-- chân đế cell -->
+              <rect x="95" y="218" width="90" height="37" fill="#8D6E4A"/>
+
+              <!-- đồng hồ đo lún ΔH -->
+              <line x1="196" y1="43" x2="196" y2="112" stroke="#455A64" stroke-width="2"/>
+              <circle cx="196" cy="118" r="9" fill="#fff" stroke="#455A64" stroke-width="2"/>
+              <text class="svg-mut" x="196" y="121" text-anchor="middle" style="font-size:7.5px">ΔH</text>
+              <line x1="196" y1="127" x2="196" y2="132" stroke="#455A64" stroke-width="2"/>
+
+              <!-- bình dưỡng ẩm -->
+              <path d="M240 235 h32 v18 q0 5 -5 5 h-22 q-5 0 -5 -5 z" fill="#DCEBF7" stroke="#5F5340" stroke-width="1.5"/>
+              <rect x="247" y="229" width="18" height="7" fill="#8D6E4A"/>
+              <text class="svg-lbl" x="256" y="272" text-anchor="middle" style="font-size:8px">bình dưỡng ẩm</text>
+              <defs>
+                <marker id="arU" markerWidth="8" markerHeight="7" refX="4" refY="1" orient="auto"><path d="M0 7 4 0 8 7Z" fill="#234E80"/></marker>
+                <marker id="arU2" markerWidth="8" markerHeight="7" refX="4" refY="6" orient="auto"><path d="M0 0 4 7 8 0Z" fill="#234E80"/></marker>
+              </defs>
+            </svg>
+            <div class="fig-cap">Sơ đồ máy nén cố kết (Oedometer) — mẫu trong vòng thép chặn nở ngang, chỉ biến dạng đứng; đòn bẩy khuếch đại tải trọng; đá thấm 2 mặt cho nước thoát 2 chiều (TCVN 4200:2012 · ASTM D2435)</div>
+          </div>
+          <div class="legend">
+            <span><b>1</b> mẫu đất + dao vòng (vòng thép chặn nở ngang)</span>
+            <span><b>2</b> đá thấm trên/dưới</span>
+            <span><b>3</b> giấy lọc</span>
+            <span><b>4</b> hộp nén — chứa nước bão hòa mẫu</span>
+            <span><b>5</b> nắp truyền lực</span>
+            <span><b>6</b> đòn bẩy (~1:10) + giá treo quả cân</span>
+            <span><b>7</b> đồng hồ đo lún ΔH (0,01 mm)</span>
+            <span><b>8</b> khung đỡ cố định</span>
+            <span><b>9</b> bình dưỡng ẩm</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note" style="border-left-color:var(--P);background:var(--Plt);color:#1a3a6c">
+    <i class="ti ti-info-circle" style="vertical-align:-2px"></i> Trang này chỉ để tham khảo — <b>không nộp bài ở đây</b>. Sau khi đọc, quay lại Trang chủ chọn bài trắc nghiệm tương ứng.
+  </div>
+</main>
+</body>
+</html>
