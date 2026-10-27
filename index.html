@@ -526,7 +526,7 @@ var CHAPTERS = [
     title:'Xử Lý Số Liệu & Báo Cáo Cá Nhân',
     topics:'Công cụ nhập số liệu → tự vẽ đường bao Coulomb (φ, c) và đường cong nén lún e–σ, e–lg σ · Rubric 100đ · Phân tích B1–B5',
     tags:[{t:'Miền C',c:'ly'},{t:'Áp dụng · Phân tích',c:'ktr'}],
-    bai:'Công cụ vẽ biểu đồ + Rubric', buoi:'Nộp sau 1 tuần',
+    bai:'', buoi:'Nộp báo cáo cuối buổi học thí nghiệm',
     href:'bai/bao-cao.html'  // trang hướng dẫn (không phải quiz)
   }
 ];
@@ -861,7 +861,7 @@ var APP = {
       '</div>',
       '<div class="ccard-body"><div class="ctag-row">'+tagsHtml+'</div></div>',
       '<div class="ccard-footer">',
-        '<span class="cbai">'+ch.buoi+' · <b>'+ch.bai+'</b></span>',
+        '<span class="cbai">'+ch.buoi+(ch.bai?' · <b>'+ch.bai+'</b>':'')+'</span>',
         footerRight,
       '</div>'
     ].join('');
