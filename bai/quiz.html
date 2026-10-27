@@ -153,7 +153,7 @@ function seedFrom(s){s=String(s);var h=2166136261;for(var i=0;i<s.length;i++){h^
 
 var Q = {
   id:null, set:null, sv:null, questions:[], matching:null, order:[], optOrder:{}, minPct:80,
-  t0:Date.now(), submitted:false,
+  t0:Date.now(), submitted:false, limitSec:0,
 
   init:function(){
     var params=new URLSearchParams(location.search);
@@ -172,6 +172,17 @@ var Q = {
     // minPct
     var sc=(window.CHAPTER_SCHEDULE&&window.CHAPTER_SCHEDULE[this.id])||{};
     this.minPct = sc.minPct!=null ? sc.minPct : (window.MIN_ATTEMPT_PCT!=null?window.MIN_ATTEMPT_PCT:80);
+    // giới hạn thời gian
+    var lim=sc.limitMin!=null?sc.limitMin:(window.TIME_LIMIT_MIN!=null?window.TIME_LIMIT_MIN:0);
+    this.limitSec=lim>0?Math.round(lim*60):0;
+    if(this.limitSec){
+      var done0=null; try{done0=localStorage.getItem('prog_'+this.id);}catch(e){}
+      if(done0) return this.gate('Đã nộp bài','Bạn đã nộp bài này rồi — mỗi bài chỉ nộp 1 lần.',true);
+      var skey='start_'+this.id+'_'+this.sv.mssv, saved=0;
+      try{saved=parseInt(localStorage.getItem(skey)||'0',10)||0;}catch(e){}
+      if(saved>0&&saved<=Date.now()) this.t0=saved; else { try{localStorage.setItem(skey,String(this.t0));}catch(e){} }
+      document.getElementById('note').insertAdjacentHTML('beforeend','<br>⏱ Giới hạn <b>'+lim+' phút</b> — hết giờ hệ thống tự nộp phần bạn đã làm.');
+    }
 
     var rand=rng(seedFrom(this.sv.stt+'|'+this.id));
     this.questions=this.set.questions||[];
@@ -186,10 +197,16 @@ var Q = {
     if(this.set.matching) this.matching={def:this.set.matching, rightOrder:shuffle(this.set.matching.right.map(function(_,k){return k;}),rand)};
 
     this.render();
-    setInterval(function(){
-      var s=Math.floor((Date.now()-self.t0)/1000);
-      document.getElementById('clock').textContent=(String(Math.floor(s/60)).padStart(2,'0'))+':'+(String(s%60).padStart(2,'0'));
-    },1000);
+    var tick=function(){
+      var s=Math.floor((Date.now()-self.t0)/1000), el=document.getElementById('clock'), v=s;
+      if(self.limitSec){
+        v=Math.max(0,self.limitSec-s);
+        el.style.color=v<=300?'#ff8a80':'';
+        if(v<=0&&!self.submitted) self.submit(true);
+      }
+      el.textContent=(String(Math.floor(v/60)).padStart(2,'0'))+':'+(String(v%60).padStart(2,'0'));
+    };
+    tick(); setInterval(tick,1000);
   },
 
   gate:function(title,msg,showHome){
@@ -404,21 +421,26 @@ var Q = {
     }
   },
 
-  submit:function(){
+  submit:function(force){
     if(this.submitted)return;
+    var auto=(force===true);
     var done=this.answeredCount(), tot=this.totalItems(), need=Math.ceil(tot*this.minPct/100);
-    if(done<need){this.barMsg('Chưa đủ '+this.minPct+'% số câu.','err');return;}
-    if(!confirm('Nộp bài? Sau khi nộp không sửa được và mỗi MSSV chỉ nộp 1 lần.'))return;
+    if(!auto){
+      if(done<need){this.barMsg('Chưa đủ '+this.minPct+'% số câu.','err');return;}
+      if(!confirm('Nộp bài? Sau khi nộp không sửa được và mỗi MSSV chỉ nộp 1 lần.'))return;
+    }
 
     this.submitted=true;
     document.getElementById('submit-btn').disabled=true;
     var res=this.grade();
-    var dur=document.getElementById('clock').textContent;
+    var el=Math.max(0,Math.round((Date.now()-this.t0)/1000)); if(this.limitSec) el=Math.min(el,this.limitSec);
+    var dur=String(Math.floor(el/60)).padStart(2,'0')+':'+String(el%60).padStart(2,'0');
 
     var url=window.WORKER_URL||'';
     var payload={
       name:this.sv.name, mssv:this.sv.mssv, stt:this.sv.stt, classId:this.sv.classId,
-      chapterId:this.id, score:res.score, correct:res.correct, total:res.total, duration:dur
+      chapterId:this.id, score:res.score, correct:res.correct, total:res.total,
+      duration:el
     };
     var self=this;
     var finish=function(sentTxt){

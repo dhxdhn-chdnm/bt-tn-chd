@@ -16,6 +16,11 @@ window.WORKER_URL = "https://bt-tn-chd.dhxdhn.workers.dev";
 //    Test: 5   |   Chính thức: 70 hoặc 80
 window.MIN_ATTEMPT_PCT = 80;
 
+// ── Giới hạn thời gian làm mỗi bài trắc nghiệm (phút) ──
+//    0 = không giới hạn. Hết giờ → hệ thống tự nộp phần đã làm.
+//    Muốn riêng từng bài: thêm  limitMin: 20  vào CHAPTER_SCHEDULE bên dưới.
+window.TIME_LIMIT_MIN = 30;
+
 // ── Danh sách lớp (hiện trong dropdown đăng ký của SV) ──────────────
 //    id   = classId gửi lên Worker → phải khớp ALLOWED_CLASSES trong worker.js + GAS_V4.js
 //    name = tên hiển thị cho sinh viên chọn
