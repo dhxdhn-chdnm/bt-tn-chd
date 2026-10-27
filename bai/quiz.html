@@ -74,6 +74,7 @@ main{max-width:820px;margin:0 auto;padding:22px 20px 90px}
 .btn:hover{filter:brightness(1.07)}.btn:active{transform:translateY(1px)}
 .btn:disabled{opacity:.45;cursor:not-allowed;filter:none}
 .btn-primary{background:var(--P);color:#fff}
+.btn-line{background:#fff;color:var(--P);border:1.5px solid var(--P)}
 .msg{font-size:12px;padding:8px 12px;border-radius:8px;margin-top:8px}
 .msg.err{background:var(--Rlt);color:#7a1010;border-left:3px solid var(--R)}
 .msg.ok{background:var(--Glt);color:#1a4a1a;border-left:3px solid var(--G)}
@@ -140,6 +141,8 @@ main{max-width:820px;margin:0 auto;padding:22px 20px 90px}
       <div class="rrow"><span>Số câu đúng</span><b id="r-correct">0 / 0</b></div>
       <div class="rrow"><span>Thời gian làm</span><b id="r-time">00:00</b></div>
       <div class="rrow"><span>Trạng thái gửi</span><b id="r-sent">–</b></div>
+      <button class="btn btn-line" onclick="RECEIPT.json()"><i class="ti ti-download"></i> Tải phiếu kết quả (.json)</button>
+      <button class="btn btn-line" onclick="RECEIPT.print()"><i class="ti ti-printer"></i> In / Lưu PDF phiếu kết quả</button>
       <a class="btn btn-primary" href="../index.html"><i class="ti ti-home"></i> Về trang chủ</a>
     </div>
   </div>
@@ -433,6 +436,7 @@ var Q = {
     this.submitted=true;
     document.getElementById('submit-btn').disabled=true;
     var res=this.grade();
+    var rows=this.buildDetail(res);
     var el=Math.max(0,Math.round((Date.now()-this.t0)/1000)); if(this.limitSec) el=Math.min(el,this.limitSec);
     var dur=String(Math.floor(el/60)).padStart(2,'0')+':'+String(el%60).padStart(2,'0');
 
@@ -440,10 +444,12 @@ var Q = {
     var payload={
       name:this.sv.name, mssv:this.sv.mssv, stt:this.sv.stt, classId:this.sv.classId,
       chapterId:this.id, score:res.score, correct:res.correct, total:res.total,
-      duration:el
+      duration:el, detail:rows
     };
     var self=this;
+    RECEIPT.make({ma_bai:this.id,tieu_de:this.set.title,sv:this.sv,diem:res.score,dung:res.correct,tong:res.total,giay:el,rows:rows});
     var finish=function(sentTxt){
+      RECEIPT.data.trang_thai_gui=sentTxt;
       try{localStorage.setItem('prog_'+self.id,JSON.stringify({done:res.total,total:res.total,score:res.score,ts:Date.now()}));}catch(e){}
       self.revealAnswers(res);
       document.getElementById('r-score').textContent=res.score+'%';
@@ -465,9 +471,75 @@ var Q = {
       .catch(function(e){ self.barMsg('Lỗi mạng: '+e.message,'err'); finish('❌ lỗi mạng — chụp màn hình báo GV'); });
   },
 
+  buildDetail:function(res){
+    var self=this, rows=[], n=0, st=RECEIPT.strip;
+    res.detail.forEach(function(d){
+      var q=self.questions[d.qi]; n++;
+      if(d.calc){
+        var c=self.calc[d.qi]||{inputs:[]};
+        c.inputs.forEach(function(inp,ii){
+          var part=d.parts[ii]||{};
+          rows.push({n:n,id:q.id+'.'+(ii+1),t:'tinh',a:part.v==null?'':part.v,k:inp.answer,tol:inp.tol,ok:part.ok?1:0});
+        });
+        return;
+      }
+      rows.push({n:n,id:q.id,t:'tn',a:d.val==null?'':st(q.options[d.val]),k:st(q.options[q.correct]),tol:'',ok:d.ok?1:0});
+    });
+    if(this.matching){
+      var m=this.matching.def, ans=m.answer; n++;
+      document.querySelectorAll('#qmatch select').forEach(function(s){
+        var i=parseInt(s.dataset.i), v=s.value===''?null:parseInt(s.value);
+        rows.push({n:n,id:m.id+'.'+(i+1),t:'noi',a:v==null?'':st(m.right[v]),k:st(m.right[ans[i]]),tol:'',ok:v===ans[i]?1:0});
+      });
+    }
+    return rows;
+  },
+
   barMsg:function(t,cls){
     var el=document.getElementById('bar-msg');
     el.textContent=t;el.className='msg '+cls;el.classList.remove('hidden');
+  }
+};
+var RECEIPT={
+  data:null,
+  esc:function(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); },
+  strip:function(s){ return String(s==null?'':s).replace(/<[^>]+>/g,'').trim(); },
+  make:function(o){
+    this.data={
+      he_thong:'BT-TN-CHD', ma_bai:o.ma_bai, tieu_de:o.tieu_de,
+      sv:{name:o.sv.name, mssv:o.sv.mssv, stt:o.sv.stt, lop:o.sv.classId},
+      nop_luc:new Date().toLocaleString('vi-VN'), nop_luc_iso:new Date().toISOString(),
+      diem:o.diem, dung:o.dung, tong:o.tong, thoi_gian_lam_s:o.giay, trang_thai_gui:'',
+      chi_tiet:o.rows
+    };
+  },
+  json:function(){
+    var d=this.data; if(!d) return;
+    var blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='PhieuKQ_'+d.sv.mssv+'_'+d.ma_bai+'.json';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500);
+  },
+  print:function(){
+    var d=this.data; if(!d) return;
+    var esc=this.esc;
+    var rows=(d.chi_tiet||[]).map(function(r){
+      return '<tr><td>'+esc(r.n)+'</td><td>'+esc(r.id)+'</td><td>'+esc(r.a)+'</td><td>'+esc(r.k)+'</td><td>'+esc(r.tol)+'</td><td>'+(r.ok===1?'Đúng':(r.ok===0?'Sai':''))+'</td></tr>';
+    }).join('');
+    var el=document.createElement('div'); el.id='receipt';
+    el.innerHTML='<style>#receipt{display:none}@media print{body>*:not(#receipt){display:none!important}#receipt{display:block!important;font:12px/1.45 Arial,sans-serif;color:#000;padding:8mm}#receipt h1{font-size:16px;margin:0 0 8px}#receipt table{width:100%;border-collapse:collapse;margin-top:8px}#receipt th,#receipt td{border:1px solid #444;padding:3px 5px;text-align:left;vertical-align:top}#receipt th{background:#eee}}</style>'
+      +'<h1>PHIẾU KẾT QUẢ — '+esc(d.tieu_de)+'</h1>'
+      +'<div>Họ tên: <b>'+esc(d.sv.name)+'</b> · MSSV: <b>'+esc(d.sv.mssv)+'</b> · STT: <b>'+esc(d.sv.stt)+'</b> · Lớp: <b>'+esc(d.sv.lop)+'</b></div>'
+      +'<div>Mã bài: '+esc(d.ma_bai)+' · Nộp lúc: '+esc(d.nop_luc)+' · Thời gian làm: '+esc(d.thoi_gian_lam_s)+' giây</div>'
+      +'<div>Điểm: <b>'+esc(d.diem)+'</b> · Đúng: <b>'+esc(d.dung)+' / '+esc(d.tong)+'</b> · Trạng thái gửi: '+esc(d.trang_thai_gui)+'</div>'
+      +'<table><thead><tr><th>Câu</th><th>Mã</th><th>Bài làm</th><th>Đáp án đúng</th><th>Dung sai</th><th>Kết quả</th></tr></thead><tbody>'+rows+'</tbody></table>'
+      +'<p style="font-size:11px;margin-top:10px">Phiếu do hệ thống tự tạo tại thời điểm nộp, để sinh viên lưu giữ. Dữ liệu gốc do giảng viên lưu.</p>';
+    document.body.appendChild(el);
+    var done=function(){ if(el.parentNode) el.remove(); window.removeEventListener('afterprint',done); };
+    window.addEventListener('afterprint',done);
+    window.print();
   }
 };
 window.addEventListener('load',function(){Q.init();});

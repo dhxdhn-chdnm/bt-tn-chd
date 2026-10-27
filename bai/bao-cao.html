@@ -230,6 +230,10 @@ tfoot td{font-weight:700;background:#FBF7EE}
     <div class="result" id="send-sum"></div>
     <button class="btn-dl" id="send-btn" onclick="SEND.go()"><i class="ti ti-send"></i> Gửi kết quả (chỉ 1 lần)</button>
     <div class="mini-note" id="send-msg"></div>
+    <div id="send-rcpt" style="display:none;margin-top:10px">
+      <button class="btn-dl" onclick="RECEIPT.json()"><i class="ti ti-download"></i> Tải phiếu kết quả (.json)</button>
+      <button class="btn-dl" onclick="RECEIPT.print()"><i class="ti ti-printer"></i> In / Lưu PDF phiếu kết quả</button>
+    </div>
   </div>
 </main>
 
@@ -402,6 +406,48 @@ function dlChart(hostId,name){
   img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(xml);
 }
 
+var RECEIPT={
+  data:null,
+  esc:function(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); },
+  strip:function(s){ return String(s==null?'':s).replace(/<[^>]+>/g,'').trim(); },
+  make:function(o){
+    this.data={
+      he_thong:'BT-TN-CHD', ma_bai:o.ma_bai, tieu_de:o.tieu_de,
+      sv:{name:o.sv.name, mssv:o.sv.mssv, stt:o.sv.stt, lop:o.sv.classId},
+      nop_luc:new Date().toLocaleString('vi-VN'), nop_luc_iso:new Date().toISOString(),
+      diem:o.diem, dung:o.dung, tong:o.tong, thoi_gian_lam_s:o.giay, trang_thai_gui:'',
+      chi_tiet:o.rows
+    };
+  },
+  json:function(){
+    var d=this.data; if(!d) return;
+    var blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='PhieuKQ_'+d.sv.mssv+'_'+d.ma_bai+'.json';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500);
+  },
+  print:function(){
+    var d=this.data; if(!d) return;
+    var esc=this.esc;
+    var rows=(d.chi_tiet||[]).map(function(r){
+      return '<tr><td>'+esc(r.n)+'</td><td>'+esc(r.id)+'</td><td>'+esc(r.a)+'</td><td>'+esc(r.k)+'</td><td>'+esc(r.tol)+'</td><td>'+(r.ok===1?'Đúng':(r.ok===0?'Sai':''))+'</td></tr>';
+    }).join('');
+    var el=document.createElement('div'); el.id='receipt';
+    el.innerHTML='<style>#receipt{display:none}@media print{body>*:not(#receipt){display:none!important}#receipt{display:block!important;font:12px/1.45 Arial,sans-serif;color:#000;padding:8mm}#receipt h1{font-size:16px;margin:0 0 8px}#receipt table{width:100%;border-collapse:collapse;margin-top:8px}#receipt th,#receipt td{border:1px solid #444;padding:3px 5px;text-align:left;vertical-align:top}#receipt th{background:#eee}}</style>'
+      +'<h1>PHIẾU KẾT QUẢ — '+esc(d.tieu_de)+'</h1>'
+      +'<div>Họ tên: <b>'+esc(d.sv.name)+'</b> · MSSV: <b>'+esc(d.sv.mssv)+'</b> · STT: <b>'+esc(d.sv.stt)+'</b> · Lớp: <b>'+esc(d.sv.lop)+'</b></div>'
+      +'<div>Mã bài: '+esc(d.ma_bai)+' · Nộp lúc: '+esc(d.nop_luc)+' · Thời gian làm: '+esc(d.thoi_gian_lam_s)+' giây</div>'
+      +'<div>Điểm: <b>'+esc(d.diem)+'</b> · Đúng: <b>'+esc(d.dung)+' / '+esc(d.tong)+'</b> · Trạng thái gửi: '+esc(d.trang_thai_gui)+'</div>'
+      +'<table><thead><tr><th>Câu</th><th>Mã</th><th>Bài làm</th><th>Đáp án đúng</th><th>Dung sai</th><th>Kết quả</th></tr></thead><tbody>'+rows+'</tbody></table>'
+      +'<p style="font-size:11px;margin-top:10px">Phiếu do hệ thống tự tạo tại thời điểm nộp, để sinh viên lưu giữ. Dữ liệu gốc do giảng viên lưu.</p>';
+    document.body.appendChild(el);
+    var done=function(){ if(el.parentNode) el.remove(); window.removeEventListener('afterprint',done); };
+    window.addEventListener('afterprint',done);
+    window.print();
+  }
+};
 var SEND={
   sv:function(){ try{return JSON.parse(sessionStorage.getItem('ncm_sv'));}catch(e){return null;} },
   val:function(id){ var v=document.getElementById(id).value; if(v==='')return null; var n=parseFloat(v); return isNaN(n)?null:n; },
@@ -473,6 +519,22 @@ var SEND={
     sum.innerHTML='c = <b>'+this.rd(ck.b1.c,2)+' kPa</b> · φ = <b>'+this.rd(ck.b1.phi,2)+'°</b> · R² = <b>'+this.rd(ck.b1.r2,4)+'</b> · e₀ = <b>'+this.rd(ck.b2.e0,4)+'</b>';
     btn.disabled=false;
   },
+  buildDetail:function(ck,gr){
+    var self=this, g=this.cfg(), rows=[], i;
+    var num=function(id){ var v=parseFloat(document.getElementById(id).value); return isNaN(v)?'':v; };
+    var add=function(id,a,k,tol,ok){ rows.push({n:0,id:id,t:'bc',a:a,k:k==null?'':k,tol:tol==null?'':tol,ok:ok==null?'':ok}); };
+    add('B1.C0',num('b1-co'));
+    for(i=0;i<B1.rows.length;i++){ add('B1.sigma'+(i+1),num('b1s'+i)); add('B1.Rmax'+(i+1),num('b1r'+i)); }
+    add('B2.delta',num('b2-delta')); add('B2.W',num('b2-w')); add('B2.gamma0',num('b2-g0')); add('B2.gammaw',num('b2-gw')); add('B2.h0',num('b2-h0'));
+    for(i=0;i<B2.loads.length;i++) add('B2.S'+B2.loads[i],num('b2S'+i));
+    gr.items.forEach(function(it){
+      var isIn=(it.ref!==undefined);
+      var a=it.k==='c'?ck.b1.c:(it.k==='φ'?ck.b1.phi:(it.k==='e₀'?ck.b2.e0:it.val));
+      add('KQ.'+it.k, (a==null||isNaN(a))?'':self.rd(a,4), (isIn&&!isNaN(it.ref))?self.rd(it.ref,4):'(công cụ)', isIn?g.tol+'%':'', it.ok?1:0);
+    });
+    rows.forEach(function(r,idx){ r.n=idx+1; });
+    return rows;
+  },
   go:function(){
     if(this.busy) return;
     var ck=this.check(), msg=document.getElementById('send-msg'), btn=document.getElementById('send-btn');
@@ -483,8 +545,10 @@ var SEND={
     var ask='Gửi kết quả để chấm? Chỉ gửi được 1 lần, không sửa được sau khi gửi.';
     if(this.val('s-cc')===null||this.val('s-cs')===null) ask='Bạn chưa nhập đủ C_c / C_s — mục để trống được 0 điểm.\n\n'+ask;
     if(!confirm(ask)) return;
+    var rows=this.buildDetail(ck,gr);
+    RECEIPT.make({ma_bai:'bc',tieu_de:'Báo cáo thí nghiệm — kết quả cuối',sv:ck.sv,diem:gr.score,dung:gr.passed,tong:gr.total,giay:0,rows:rows});
     var payload={ name:ck.sv.name, mssv:ck.sv.mssv, stt:ck.sv.stt, classId:ck.sv.classId, chapterId:'bc',
-      score:gr.score, correct:gr.passed, total:gr.total, duration:0 };
+      score:gr.score, correct:gr.passed, total:gr.total, duration:0, detail:rows };
     this.busy=true; btn.disabled=true; msg.textContent='Đang gửi...';
     var self=this;
     fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
@@ -493,6 +557,8 @@ var SEND={
         if(d.ok){
           try{ localStorage.setItem('sent_bc_'+ck.sv.mssv,String(Date.now())); }catch(e){}
           self.done=true;
+          RECEIPT.data.trang_thai_gui='✅ đã ghi nhận';
+          document.getElementById('send-rcpt').style.display='block';
           var parts=gr.items.map(function(it){
             var s=it.k+(it.ok?' ✓':' ✗');
             if(it.ref!==undefined&&!it.ok&&!isNaN(it.ref)) s+=' (từ biểu đồ của bạn ≈ '+self.rd(it.ref,3)+')';
