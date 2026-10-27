@@ -405,7 +405,7 @@ footer b { color:rgba(255,255,255,.9); }
     <div class="login-body">
       <div class="warn-box">
         ⚠️ <b>Lưu ý:</b> Bài làm <b>không lưu tạm</b> khi đóng tab — hoàn thành và nộp trong một lần.
-        Mỗi MSSV chỉ nộp <b>1 lần</b> mỗi bài.
+        Mỗi MSSV chỉ nộp <b>1 lần</b> mỗi bài.<span id="exam-note"></span>
         <b>Số thứ tự (STT)</b> trong danh sách lớp sinh ra bộ số liệu tính toán riêng cho bạn — nhập đúng để có đề đúng.
       </div>
       <div class="form-grid">
@@ -552,6 +552,27 @@ function toast(msg, dur) {
 function loading(v){document.getElementById('loading-overlay').classList.toggle('show',v);}
 
 // ── TIMER ──
+var EXAM={
+  sec:function(){ var m=window.TOTAL_TIME_LIMIT_MIN; return m>0?Math.round(m*60):0; },
+  key:function(sv){ return 'exam_start_'+(window.EXAM_ID||'exam1')+'_'+sv.mssv; },
+  start:function(sv,create){
+    var v=0;
+    try{
+      v=parseInt(localStorage.getItem(this.key(sv))||'0',10)||0;
+      if(!v&&create){ v=Date.now(); localStorage.setItem(this.key(sv),String(v)); }
+    }catch(e){ if(create&&!v) v=Date.now(); }
+    return v;
+  },
+  deadline:function(sv,create){
+    var s=this.sec(); if(!s||!sv||!sv.mssv) return 0;
+    var st=this.start(sv,create); return st?st+s*1000:0;
+  },
+  fmt:function(sec){ sec=Math.max(0,sec); return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0'); }
+};
+window.addEventListener('load',function(){
+  var s=EXAM.sec(), el=document.getElementById('exam-note');
+  if(s&&el) el.innerHTML=' <b>Tổng thời gian làm cả 5 mục: '+Math.round(s/60)+' phút</b> — tính từ lúc bạn mở mục đầu tiên.';
+});
 var TIMER = {
   t:0, iv:null,
   start:function(){
@@ -559,8 +580,12 @@ var TIMER = {
     this.iv=setInterval(function(){
       var s=Math.floor((Date.now()-TIMER.t)/1000);
       var str=(String(Math.floor(s/60)).padStart(2,'0'))+':'+(String(s%60).padStart(2,'0'));
+      var dl=(typeof APP!=='undefined'&&APP.student)?EXAM.deadline(APP.student,false):0, col='';
+      if(dl){ var rem=Math.max(0,Math.ceil((dl-Date.now())/1000)); str=EXAM.fmt(rem); col=rem<=300?'#ff8a80':''; }
       document.getElementById('timer-badge').textContent=str;
       document.getElementById('sv-clock').textContent=str;
+      document.getElementById('timer-badge').style.color=col;
+      document.getElementById('sv-clock').style.color=col;
     },1000);
   },
   elapsed:function(){

@@ -156,7 +156,7 @@ function seedFrom(s){s=String(s);var h=2166136261;for(var i=0;i<s.length;i++){h^
 
 var Q = {
   id:null, set:null, sv:null, questions:[], matching:null, order:[], optOrder:{}, minPct:80,
-  t0:Date.now(), submitted:false, limitSec:0,
+  t0:Date.now(), submitted:false, limitSec:0, deadline:0,
 
   init:function(){
     var params=new URLSearchParams(location.search);
@@ -175,16 +175,29 @@ var Q = {
     // minPct
     var sc=(window.CHAPTER_SCHEDULE&&window.CHAPTER_SCHEDULE[this.id])||{};
     this.minPct = sc.minPct!=null ? sc.minPct : (window.MIN_ATTEMPT_PCT!=null?window.MIN_ATTEMPT_PCT:80);
-    // giới hạn thời gian
+    // giới hạn thời gian: theo từng bài (TIME_LIMIT_MIN) và/hoặc tổng cả 5 mục (TOTAL_TIME_LIMIT_MIN)
     var lim=sc.limitMin!=null?sc.limitMin:(window.TIME_LIMIT_MIN!=null?window.TIME_LIMIT_MIN:0);
     this.limitSec=lim>0?Math.round(lim*60):0;
-    if(this.limitSec){
+    var totSec=EXAM.sec();
+    this.deadline=0;
+    if(this.limitSec||totSec){
       var done0=null; try{done0=localStorage.getItem('prog_'+this.id);}catch(e){}
       if(done0) return this.gate('Đã nộp bài','Bạn đã nộp bài này rồi — mỗi bài chỉ nộp 1 lần.',true);
       var skey='start_'+this.id+'_'+this.sv.mssv, saved=0;
       try{saved=parseInt(localStorage.getItem(skey)||'0',10)||0;}catch(e){}
       if(saved>0&&saved<=Date.now()) this.t0=saved; else { try{localStorage.setItem(skey,String(this.t0));}catch(e){} }
-      document.getElementById('note').insertAdjacentHTML('beforeend','<br>⏱ Giới hạn <b>'+lim+' phút</b> — hết giờ hệ thống tự nộp phần bạn đã làm.');
+      var noteHtml='';
+      if(this.limitSec){
+        this.deadline=this.t0+this.limitSec*1000;
+        noteHtml+='<br>⏱ Giới hạn <b>'+lim+' phút</b> cho bài này — hết giờ hệ thống tự nộp phần bạn đã làm.';
+      }
+      if(totSec){
+        var dl=EXAM.deadline(this.sv,true);
+        if(dl&&(!this.deadline||dl<this.deadline)) this.deadline=dl;
+        noteHtml+='<br>⏱ Tổng thời gian làm cả 5 mục: <b>'+Math.round(totSec/60)+' phút</b> (tính từ lúc bạn mở mục đầu tiên) — hết giờ hệ thống tự nộp mục đang làm và khóa các mục còn lại.';
+        if(this.deadline&&Date.now()>=this.deadline) return this.gate('Đã hết thời gian','Đã hết '+Math.round(totSec/60)+' phút làm bài chung cho cả 5 mục — mục này không còn mở.',true);
+      }
+      document.getElementById('note').insertAdjacentHTML('beforeend',noteHtml);
     }
 
     var rand=rng(seedFrom(this.sv.stt+'|'+this.id));
@@ -201,13 +214,13 @@ var Q = {
 
     this.render();
     var tick=function(){
-      var s=Math.floor((Date.now()-self.t0)/1000), el=document.getElementById('clock'), v=s;
-      if(self.limitSec){
-        v=Math.max(0,self.limitSec-s);
+      var el=document.getElementById('clock'), v=Math.max(0,Math.floor((Date.now()-self.t0)/1000));
+      if(self.deadline){
+        v=Math.max(0,Math.ceil((self.deadline-Date.now())/1000));
         el.style.color=v<=300?'#ff8a80':'';
         if(v<=0&&!self.submitted) self.submit(true);
       }
-      el.textContent=(String(Math.floor(v/60)).padStart(2,'0'))+':'+(String(v%60).padStart(2,'0'));
+      el.textContent=EXAM.fmt(v);
     };
     tick(); setInterval(tick,1000);
   },
@@ -437,7 +450,7 @@ var Q = {
     document.getElementById('submit-btn').disabled=true;
     var res=this.grade();
     var rows=this.buildDetail(res);
-    var el=Math.max(0,Math.round((Date.now()-this.t0)/1000)); if(this.limitSec) el=Math.min(el,this.limitSec);
+    var el=Math.max(0,Math.round((Date.now()-this.t0)/1000)); if(this.deadline) el=Math.min(el,Math.max(0,Math.round((this.deadline-this.t0)/1000)));
     var dur=String(Math.floor(el/60)).padStart(2,'0')+':'+String(el%60).padStart(2,'0');
 
     var url=window.WORKER_URL||'';
@@ -499,6 +512,23 @@ var Q = {
     var el=document.getElementById('bar-msg');
     el.textContent=t;el.className='msg '+cls;el.classList.remove('hidden');
   }
+};
+var EXAM={
+  sec:function(){ var m=window.TOTAL_TIME_LIMIT_MIN; return m>0?Math.round(m*60):0; },
+  key:function(sv){ return 'exam_start_'+(window.EXAM_ID||'exam1')+'_'+sv.mssv; },
+  start:function(sv,create){
+    var v=0;
+    try{
+      v=parseInt(localStorage.getItem(this.key(sv))||'0',10)||0;
+      if(!v&&create){ v=Date.now(); localStorage.setItem(this.key(sv),String(v)); }
+    }catch(e){ if(create&&!v) v=Date.now(); }
+    return v;
+  },
+  deadline:function(sv,create){
+    var s=this.sec(); if(!s||!sv||!sv.mssv) return 0;
+    var st=this.start(sv,create); return st?st+s*1000:0;
+  },
+  fmt:function(sec){ sec=Math.max(0,sec); return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0'); }
 };
 var RECEIPT={
   data:null,

@@ -72,6 +72,7 @@ tfoot td{font-weight:700;background:#FBF7EE}
     <a href="../index.html" class="back-btn"><i class="ti ti-arrow-left"></i> Trang chủ</a>
     <div class="hdr-mark" aria-label="GEO"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="geoB"><path d="M3 3H61V49q0 12-12 12H3Z"/></clipPath></defs><g clip-path="url(#geoB)"><rect width="64" height="27" fill="#234E80"/><rect y="27" width="64" height="37" fill="#B0592A"/><g fill="none" stroke="#fff" stroke-width="6.5" stroke-linecap="round"><circle cx="19" cy="24" r="9.5"/><circle cx="32" cy="24" r="9.5"/><circle cx="45" cy="24" r="9.5"/><path d="M32 24H46"/><path d="M19 33.5q0 6 6 6"/></g><path d="M0 47 16 41 32 47 48 41 64 47" fill="none" stroke="#fff" stroke-width="4.5"/><path d="M0 55 16 49 32 55 48 49 64 55" fill="none" stroke="#fff" stroke-width="4.5"/></g><path d="M3 3H61V49q0 12-12 12H3Z" fill="none" stroke="#111" stroke-width="4"/></svg></div>
     <div class="hdr-title"><h1>Hướng dẫn Báo cáo thí nghiệm cá nhân</h1><p>Mục 3.3 · Miền C · Trọng số 50%</p></div>
+    <span id="exam-clock" style="display:none;margin-left:auto;font:700 13px ui-monospace,Menlo,Consolas,monospace;background:rgba(255,255,255,.15);padding:5px 12px;border-radius:20px"></span>
   </div>
 </header>
 <main>
@@ -406,6 +407,23 @@ function dlChart(hostId,name){
   img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(xml);
 }
 
+var EXAM={
+  sec:function(){ var m=window.TOTAL_TIME_LIMIT_MIN; return m>0?Math.round(m*60):0; },
+  key:function(sv){ return 'exam_start_'+(window.EXAM_ID||'exam1')+'_'+sv.mssv; },
+  start:function(sv,create){
+    var v=0;
+    try{
+      v=parseInt(localStorage.getItem(this.key(sv))||'0',10)||0;
+      if(!v&&create){ v=Date.now(); localStorage.setItem(this.key(sv),String(v)); }
+    }catch(e){ if(create&&!v) v=Date.now(); }
+    return v;
+  },
+  deadline:function(sv,create){
+    var s=this.sec(); if(!s||!sv||!sv.mssv) return 0;
+    var st=this.start(sv,create); return st?st+s*1000:0;
+  },
+  fmt:function(sec){ sec=Math.max(0,sec); return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0'); }
+};
 var RECEIPT={
   data:null,
   esc:function(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); },
@@ -458,6 +476,8 @@ var SEND={
              cc:g.cc||{from:1,to:3}, cs:g.cs||{from:0,to:1} };
   },
   state:function(){
+    var sv0=this.sv(), dl0=sv0?EXAM.deadline(sv0,false):0;
+    if(dl0&&Date.now()>=dl0) return 'timeout';
     var s=window.CHAPTER_SCHEDULE&&window.CHAPTER_SCHEDULE.bc;
     if(s){
       if(s.active===false) return 'locked';
@@ -495,10 +515,11 @@ var SEND={
     var n=0; items.forEach(function(it){ if(it.ok) n++; });
     return {items:items,passed:n,total:items.length,score:n*g.pts,pts:g.pts};
   },
-  check:function(){
-    var sv=this.sv(), b1=B1.last, b2=B2.last, err=null;
+  check:function(auto){
+    var sv=this.sv(), b1=B1.last, b2=B2.last, err=null, st=this.state();
     if(!sv||!sv.mssv) err='Chưa đăng nhập — quay về trang chủ nhập họ tên, MSSV, STT, lớp rồi mở lại trang này trong cùng tab.';
-    else if(this.state()!=='open') err='Bài báo cáo hiện không mở nhận kết quả.';
+    else if(st==='timeout'&&!auto) err='Đã hết thời gian làm bài (tổng '+Math.round(EXAM.sec()/60)+' phút) — không gửi được nữa.';
+    else if(st!=='open'&&st!=='timeout') err='Bài báo cáo hiện không mở nhận kết quả.';
     else if(!b1||b1.n<B1.rows.length) err='Bài 1 cần đủ '+B1.rows.length+' mẫu (σ và R_max) để tính c, φ.';
     else if(!b2) err='Bài 2 cần đủ Δ, W, γ₀, γ_w để tính e₀.';
     else if(b2.e0<=0) err='e₀ ≤ 0 — kiểm tra lại Δ, W, γ₀.';
@@ -506,6 +527,13 @@ var SEND={
     return {sv:sv,b1:b1,b2:b2,err:err};
   },
   refresh:function(){
+    var sv0=this.sv(), dl0=sv0?EXAM.deadline(sv0,true):0, xc=document.getElementById('exam-clock');
+    if(dl0&&xc){
+      var rem=Math.max(0,Math.ceil((dl0-Date.now())/1000));
+      xc.style.display='inline-block'; xc.textContent='⏱ '+EXAM.fmt(rem); xc.style.color=rem<=300?'#ff8a80':'';
+      var sentFlag=false; try{ sentFlag=!!localStorage.getItem('sent_bc_'+sv0.mssv); }catch(e){}
+      if(rem<=0&&!this.done&&!this.autoTried&&!sentFlag){ this.autoTried=true; this.go(true); }
+    }
     var g=this.cfg();
     document.getElementById('send-tol').textContent=g.tol;
     document.getElementById('send-pts').textContent=g.pts;
@@ -535,16 +563,16 @@ var SEND={
     rows.forEach(function(r,idx){ r.n=idx+1; });
     return rows;
   },
-  go:function(){
+  go:function(auto){
     if(this.busy) return;
-    var ck=this.check(), msg=document.getElementById('send-msg'), btn=document.getElementById('send-btn');
-    if(ck.err){ msg.textContent=ck.err; return; }
+    var ck=this.check(auto), msg=document.getElementById('send-msg'), btn=document.getElementById('send-btn');
+    if(ck.err){ msg.textContent=(auto?'⏰ Hết giờ — ':'')+ck.err; return; }
     var url=window.WORKER_URL||'';
     if(!url){ msg.textContent='Chưa cấu hình Worker — không gửi được.'; return; }
     var gr=this.grade(ck);
     var ask='Gửi kết quả để chấm? Chỉ gửi được 1 lần, không sửa được sau khi gửi.';
     if(this.val('s-cc')===null||this.val('s-cs')===null) ask='Bạn chưa nhập đủ C_c / C_s — mục để trống được 0 điểm.\n\n'+ask;
-    if(!confirm(ask)) return;
+    if(!auto&&!confirm(ask)) return;
     var rows=this.buildDetail(ck,gr);
     RECEIPT.make({ma_bai:'bc',tieu_de:'Báo cáo thí nghiệm — kết quả cuối',sv:ck.sv,diem:gr.score,dung:gr.passed,tong:gr.total,giay:0,rows:rows});
     var payload={ name:ck.sv.name, mssv:ck.sv.mssv, stt:ck.sv.stt, classId:ck.sv.classId, chapterId:'bc',

@@ -19,7 +19,14 @@ window.MIN_ATTEMPT_PCT = 80;
 // ── Giới hạn thời gian làm mỗi bài trắc nghiệm (phút) ──
 //    0 = không giới hạn. Hết giờ → hệ thống tự nộp phần đã làm.
 //    Muốn riêng từng bài: thêm  limitMin: 20  vào CHAPTER_SCHEDULE bên dưới.
-window.TIME_LIMIT_MIN = 30;
+window.TIME_LIMIT_MIN = 0;
+
+// ── TỔNG thời gian làm cả 5 mục (phút), dùng chung 1 quỹ thời gian ──
+//    Tính từ lúc SV mở mục đầu tiên (bài trắc nghiệm hoặc báo cáo). Hết giờ:
+//    mục đang làm tự nộp, các mục còn lại khóa. 0 = không giới hạn tổng.
+//    EXAM_ID: đổi chuỗi này (vd "lan2") để mở đợt thi mới — đồng hồ của mọi SV tính lại từ đầu.
+window.TOTAL_TIME_LIMIT_MIN = 40;
+window.EXAM_ID = "lan1";
 
 // ── Chấm tự động trang Báo cáo (5 mục: c, φ, e₀, C_c, C_s) ──
 //    tolPct : dung sai ± % so với giá trị trang tự tính từ số liệu của chính SV
