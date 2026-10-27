@@ -21,6 +21,18 @@ window.MIN_ATTEMPT_PCT = 80;
 //    Muốn riêng từng bài: thêm  limitMin: 20  vào CHAPTER_SCHEDULE bên dưới.
 window.TIME_LIMIT_MIN = 30;
 
+// ── Chấm tự động trang Báo cáo (5 mục: c, φ, e₀, C_c, C_s) ──
+//    tolPct : dung sai ± % so với giá trị trang tự tính từ số liệu của chính SV
+//    ptsEach: điểm mỗi mục (5 mục × 20 = 100)
+//    cc / cs: đoạn đường e–lgσ dùng tính C_c, C_s — chỉ số điểm tải (0 = 50, 1 = 100, 2 = 200, 3 = 400 kPa)
+//             C_c = độ dốc hồi quy từ điểm from → to ;  C_s = độ dốc đoạn from → to
+window.REPORT_GRADING = {
+  tolPct: 5,
+  ptsEach: 20,
+  cc: { from: 1, to: 3 },
+  cs: { from: 0, to: 1 }
+};
+
 // ── Danh sách lớp (hiện trong dropdown đăng ký của SV) ──────────────
 //    id   = classId gửi lên Worker → phải khớp ALLOWED_CLASSES trong worker.js + GAS_V4.js
 //    name = tên hiển thị cho sinh viên chọn

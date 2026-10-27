@@ -220,11 +220,11 @@ tfoot td{font-weight:700;background:#FBF7EE}
   </div>
 
   <div class="card" id="send-card">
-    <h3><i class="ti ti-send"></i> Gửi kết quả cuối cho giảng viên</h3>
-    <p>Gửi <b>một lần duy nhất</b> các kết quả cuối từ công cụ ở trên: c, φ, R² (Bài 1) và e₀ (Bài 2). Hai giá trị C_c, C_s do bạn tự đọc từ biểu đồ e – lg σ; để trống nếu bài của bạn chưa có.</p>
+    <h3><i class="ti ti-send"></i> Gửi kết quả cuối để chấm điểm</h3>
+    <p>Gửi <b>một lần duy nhất</b> để hệ thống tự chấm (100 điểm): c, φ, e₀ (từ công cụ ở trên), C_c và C_s (bạn tự đọc từ biểu đồ e – lg σ rồi nhập vào đây). Mỗi mục <b id="send-pts">20</b> điểm, đạt khi sai lệch ≤ ±<b id="send-tol">5</b>%. Mục để trống được 0 điểm.</p>
     <div class="io-grid">
-      <div class="io-f"><label>Chỉ số nén C_c (không bắt buộc)</label><input id="s-cc" type="number" step="any" placeholder="vd 0.25"></div>
-      <div class="io-f"><label>Chỉ số nở C_s (không bắt buộc)</label><input id="s-cs" type="number" step="any" placeholder="vd 0.04"></div>
+      <div class="io-f"><label>Chỉ số nén C_c</label><input id="s-cc" type="number" step="any" placeholder="vd 0.25"></div>
+      <div class="io-f"><label>Chỉ số nở C_s</label><input id="s-cs" type="number" step="any" placeholder="vd 0.04"></div>
     </div>
     <div class="mini-note" id="send-who"></div>
     <div class="result" id="send-sum"></div>
@@ -354,6 +354,7 @@ var B2={
         EEl.textContent=isFinite(E)?fmt(E):'–';
       } else {aEl.textContent='–';EEl.textContent='–';}
     }
+    if(this.last) this.last.es=es.slice();
     var lin=[],lgp=[],k;
     if(!isNaN(e0)) lin.push({x:0,y:e0,t:'e₀'});
     for(k=0;k<this.loads.length;k++) if(!isNaN(es[k])){ lin.push({x:this.loads[k],y:es[k]}); lgp.push({x:this.loads[k],y:es[k]}); }
@@ -405,6 +406,11 @@ var SEND={
   sv:function(){ try{return JSON.parse(sessionStorage.getItem('ncm_sv'));}catch(e){return null;} },
   val:function(id){ var v=document.getElementById(id).value; if(v==='')return null; var n=parseFloat(v); return isNaN(n)?null:n; },
   rd:function(x,k){ var p=Math.pow(10,k); return Math.round(x*p)/p; },
+  cfg:function(){
+    var g=window.REPORT_GRADING||{};
+    return { tol:g.tolPct!=null?g.tolPct:5, pts:g.ptsEach!=null?g.ptsEach:20,
+             cc:g.cc||{from:1,to:3}, cs:g.cs||{from:0,to:1} };
+  },
   state:function(){
     var s=window.CHAPTER_SCHEDULE&&window.CHAPTER_SCHEDULE.bc;
     if(s){
@@ -415,6 +421,34 @@ var SEND={
     }
     return 'open';
   },
+  slope:function(from,to){
+    var xs=[],ys=[],i;
+    for(i=from;i<=to;i++){
+      var e=B2.last.es[i];
+      if(e==null||isNaN(e)) return NaN;
+      xs.push(Math.log10(B2.loads[i])); ys.push(e);
+    }
+    var f=lsq(xs,ys);
+    return f?-f.slope:NaN;
+  },
+  within:function(val,ref,tol){
+    if(val===null||isNaN(ref)) return false;
+    if(Math.abs(ref)<1e-9) return Math.abs(val)<1e-6;
+    return Math.abs(val-ref)<=Math.abs(ref)*tol/100;
+  },
+  grade:function(ck){
+    var g=this.cfg(), cc=this.val('s-cc'), cs=this.val('s-cs');
+    var refCc=this.slope(g.cc.from,g.cc.to), refCs=this.slope(g.cs.from,g.cs.to);
+    var items=[
+      {k:'c',   ok:isFinite(ck.b1.c)},
+      {k:'φ',   ok:isFinite(ck.b1.phi)},
+      {k:'e₀',  ok:isFinite(ck.b2.e0)&&ck.b2.e0>0},
+      {k:'C_c', ok:this.within(cc,refCc,g.tol), ref:refCc, val:cc},
+      {k:'C_s', ok:this.within(cs,refCs,g.tol), ref:refCs, val:cs}
+    ];
+    var n=0; items.forEach(function(it){ if(it.ok) n++; });
+    return {items:items,passed:n,total:items.length,score:n*g.pts,pts:g.pts};
+  },
   check:function(){
     var sv=this.sv(), b1=B1.last, b2=B2.last, err=null;
     if(!sv||!sv.mssv) err='Chưa đăng nhập — quay về trang chủ nhập họ tên, MSSV, STT, lớp rồi mở lại trang này trong cùng tab.';
@@ -422,11 +456,16 @@ var SEND={
     else if(!b1||b1.n<B1.rows.length) err='Bài 1 cần đủ '+B1.rows.length+' mẫu (σ và R_max) để tính c, φ.';
     else if(!b2) err='Bài 2 cần đủ Δ, W, γ₀, γ_w để tính e₀.';
     else if(b2.e0<=0) err='e₀ ≤ 0 — kiểm tra lại Δ, W, γ₀.';
+    else if(!b2.es||b2.es.length<B2.loads.length||b2.es.some(function(v){return isNaN(v);})) err='Bài 2 cần nhập đủ độ lún Sᵢ ở cả '+B2.loads.length+' cấp tải.';
     return {sv:sv,b1:b1,b2:b2,err:err};
   },
   refresh:function(){
+    var g=this.cfg();
+    document.getElementById('send-tol').textContent=g.tol;
+    document.getElementById('send-pts').textContent=g.pts;
     var ck=this.check(), who=document.getElementById('send-who'), sum=document.getElementById('send-sum'), btn=document.getElementById('send-btn');
     who.textContent=ck.sv&&ck.sv.mssv ? 'Người gửi: '+ck.sv.name+' · MSSV '+ck.sv.mssv+' · STT '+ck.sv.stt+' · Lớp '+ck.sv.classId : '';
+    if(this.done) return;
     var sent=false;
     try{ sent=!!(ck.sv&&localStorage.getItem('sent_bc_'+ck.sv.mssv)); }catch(e){}
     if(sent){ sum.textContent='Bạn đã gửi kết quả trên thiết bị này.'; btn.disabled=true; return; }
@@ -440,10 +479,12 @@ var SEND={
     if(ck.err){ msg.textContent=ck.err; return; }
     var url=window.WORKER_URL||'';
     if(!url){ msg.textContent='Chưa cấu hình Worker — không gửi được.'; return; }
-    var cc=this.val('s-cc'), cs=this.val('s-cs');
-    var payload={ type:'report', name:ck.sv.name, mssv:ck.sv.mssv, stt:ck.sv.stt, classId:ck.sv.classId, chapterId:'bc',
-      c:this.rd(ck.b1.c,4), phi:this.rd(ck.b1.phi,4), r2:this.rd(ck.b1.r2,6), e0:this.rd(ck.b2.e0,6), cc:cc, cs:cs };
-    if(!confirm('Gửi kết quả? Chỉ gửi được 1 lần, không sửa được sau khi gửi.')) return;
+    var gr=this.grade(ck);
+    var ask='Gửi kết quả để chấm? Chỉ gửi được 1 lần, không sửa được sau khi gửi.';
+    if(this.val('s-cc')===null||this.val('s-cs')===null) ask='Bạn chưa nhập đủ C_c / C_s — mục để trống được 0 điểm.\n\n'+ask;
+    if(!confirm(ask)) return;
+    var payload={ name:ck.sv.name, mssv:ck.sv.mssv, stt:ck.sv.stt, classId:ck.sv.classId, chapterId:'bc',
+      score:gr.score, correct:gr.passed, total:gr.total, duration:0 };
     this.busy=true; btn.disabled=true; msg.textContent='Đang gửi...';
     var self=this;
     fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
@@ -451,8 +492,14 @@ var SEND={
       .then(function(d){
         if(d.ok){
           try{ localStorage.setItem('sent_bc_'+ck.sv.mssv,String(Date.now())); }catch(e){}
-          msg.textContent='✅ Đã ghi nhận kết quả.';
-          self.refresh();
+          self.done=true;
+          var parts=gr.items.map(function(it){
+            var s=it.k+(it.ok?' ✓':' ✗');
+            if(it.ref!==undefined&&!it.ok&&!isNaN(it.ref)) s+=' (từ biểu đồ của bạn ≈ '+self.rd(it.ref,3)+')';
+            return s;
+          });
+          msg.textContent='✅ Đã ghi nhận. Điểm tự chấm: '+gr.score+'/'+(gr.total*gr.pts)+' — '+parts.join(' · ');
+          document.getElementById('send-sum').textContent='Đã gửi kết quả.';
         } else {
           msg.textContent='❌ '+(d.error||'Không gửi được');
           self.busy=false; btn.disabled=false;
