@@ -275,7 +275,7 @@ var Q = {
         (c.inputs||[]).forEach(function(inp,ii){
           html+='<div class="calc-row" id="cr'+qi+'_'+ii+'">'
             +'<span class="calc-lbl">'+inp.label+'</span>'
-            +'<input type="number" step="any" inputmode="decimal" data-q="'+qi+'" data-i="'+ii+'" oninput="Q.calcInput()" placeholder="?">'
+            +'<input type="text" inputmode="decimal" autocomplete="off" data-q="'+qi+'" data-i="'+ii+'" oninput="Q.calcInput()" placeholder="?">'
             +'<span class="calc-unit">'+inp.unit+'</span><span class="mk"></span></div>';
         });
         html+='<div class="explain hidden" id="exp'+qi+'"></div></div>';
@@ -573,6 +573,19 @@ var RECEIPT={
   }
 };
 window.addEventListener('load',function(){Q.init();});
+</script>
+<script>
+/* Ô nhập số: cho phép số thập phân bằng dấu phẩy (12,5) lẫn dấu chấm (12.5).
+   Dùng type=text + inputmode=decimal (bàn phím số trên điện thoại); mọi dấu phẩy được
+   đổi thành dấu chấm ngay khi gõ nên .value luôn là dạng "12.5" cho các hàm tính toán. */
+document.addEventListener('input',function(e){
+  var el=e.target;
+  if(!el||el.tagName!=='INPUT'||el.getAttribute('inputmode')!=='decimal')return;
+  var v=el.value,pos=el.selectionStart;
+  var n=v.replace(/,/g,'.').replace(/[^0-9.\-+eE]/g,'');
+  var d=n.indexOf('.'); if(d>=0) n=n.slice(0,d+1)+n.slice(d+1).replace(/\./g,'');
+  if(n!==v){el.value=n;try{el.setSelectionRange(pos,pos);}catch(x){}}
+},true);
 </script>
 </body>
 </html>

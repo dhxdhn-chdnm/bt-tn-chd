@@ -166,7 +166,7 @@ tfoot td{font-weight:700;background:#FBF7EE}
       <div class="tool-hd"><i class="ti ti-cut"></i> Bài 1 — Cắt đất trực tiếp · đường bao Coulomb τ = c + σ·tanφ</div>
       <div class="tool-bd">
         <div class="io-grid">
-          <div class="io-f"><label>Hệ số vòng ứng biến C₀ (kPa/vạch)</label><input id="b1-co" type="number" step="any" value="1" oninput="B1.calc()"></div>
+          <div class="io-f"><label>Hệ số vòng ứng biến C₀ (kPa/vạch)</label><input id="b1-co" type="text" inputmode="decimal" autocomplete="off" value="1" oninput="B1.calc()"></div>
         </div>
         <table class="dtbl" id="b1-tbl">
           <thead><tr><th>Mẫu</th><th>Áp lực nén σ (kPa)</th><th>Biến dạng R_max (vạch/số đọc)</th><th>Sức chống cắt τ_max = C₀·R_max (kPa)</th></tr></thead>
@@ -191,11 +191,11 @@ tfoot td{font-weight:700;background:#FBF7EE}
       <div class="tool-hd"><i class="ti ti-arrow-bar-to-down"></i> Bài 2 — Nén không nở hông · đường cong nén lún e = f(σ)</div>
       <div class="tool-bd">
         <div class="io-grid">
-          <div class="io-f"><label>Tỉ trọng hạt Δ</label><input id="b2-delta" type="number" step="any" value="2.70" oninput="B2.calc()"></div>
-          <div class="io-f"><label>Độ ẩm W (%)</label><input id="b2-w" type="number" step="any" placeholder="vd 28" oninput="B2.calc()"></div>
-          <div class="io-f"><label>Dung trọng tự nhiên γ₀ (g/cm³)</label><input id="b2-g0" type="number" step="any" placeholder="vd 1.85" oninput="B2.calc()"></div>
-          <div class="io-f"><label>Dung trọng nước γ_w (g/cm³)</label><input id="b2-gw" type="number" step="any" value="1" oninput="B2.calc()"></div>
-          <div class="io-f"><label>Chiều cao mẫu ban đầu h₀ (mm)</label><input id="b2-h0" type="number" step="any" value="20" oninput="B2.calc()"></div>
+          <div class="io-f"><label>Tỉ trọng hạt Δ</label><input id="b2-delta" type="text" inputmode="decimal" autocomplete="off" value="2.70" oninput="B2.calc()"></div>
+          <div class="io-f"><label>Độ ẩm W (%)</label><input id="b2-w" type="text" inputmode="decimal" autocomplete="off" placeholder="vd 28" oninput="B2.calc()"></div>
+          <div class="io-f"><label>Dung trọng tự nhiên γ₀ (g/cm³)</label><input id="b2-g0" type="text" inputmode="decimal" autocomplete="off" placeholder="vd 1.85" oninput="B2.calc()"></div>
+          <div class="io-f"><label>Dung trọng nước γ_w (g/cm³)</label><input id="b2-gw" type="text" inputmode="decimal" autocomplete="off" value="1" oninput="B2.calc()"></div>
+          <div class="io-f"><label>Chiều cao mẫu ban đầu h₀ (mm)</label><input id="b2-h0" type="text" inputmode="decimal" autocomplete="off" value="20" oninput="B2.calc()"></div>
         </div>
         <div class="formula">e₀ = Δ·γ_w·(1 + 0,01·W) / γ₀ − 1 &nbsp;·&nbsp; eᵢ = e₀ − (Sᵢ/h₀)(1 + e₀) &nbsp;·&nbsp; a = (eᵢ − eᵢ₊₁)/(σᵢ₊₁ − σᵢ) &nbsp;·&nbsp; E = (1 + eᵢ)/a</div>
         <table class="dtbl" id="b2-tbl">
@@ -224,8 +224,8 @@ tfoot td{font-weight:700;background:#FBF7EE}
     <h3><i class="ti ti-send"></i> Gửi kết quả cuối để chấm điểm</h3>
     <p>Gửi <b>một lần duy nhất</b> để hệ thống tự chấm (100 điểm): c, φ, e₀ (từ công cụ ở trên), C_c và C_s (bạn tự đọc từ biểu đồ e – lg σ rồi nhập vào đây). Mỗi mục <b id="send-pts">20</b> điểm, đạt khi sai lệch ≤ ±<b id="send-tol">5</b>%. Mục để trống được 0 điểm.</p>
     <div class="io-grid">
-      <div class="io-f"><label>Chỉ số nén C_c</label><input id="s-cc" type="number" step="any" placeholder="vd 0.25"></div>
-      <div class="io-f"><label>Chỉ số nở C_s</label><input id="s-cs" type="number" step="any" placeholder="vd 0.04"></div>
+      <div class="io-f"><label>Chỉ số nén C_c</label><input id="s-cc" type="text" inputmode="decimal" autocomplete="off" placeholder="vd 0.25"></div>
+      <div class="io-f"><label>Chỉ số nở C_s</label><input id="s-cs" type="text" inputmode="decimal" autocomplete="off" placeholder="vd 0.04"></div>
     </div>
     <div class="mini-note" id="send-who"></div>
     <div class="result" id="send-sum"></div>
@@ -290,8 +290,8 @@ var B1={
   init:function(){
     document.querySelector('#b1-tbl tbody').innerHTML=this.rows.map(function(s,i){
       return '<tr><td>'+(i+1)+'</td>'
-        +'<td><input type="number" step="any" id="b1s'+i+'" value="'+s+'" oninput="B1.calc()"></td>'
-        +'<td><input type="number" step="any" id="b1r'+i+'" placeholder="?" oninput="B1.calc()"></td>'
+        +'<td><input type="text" inputmode="decimal" autocomplete="off" id="b1s'+i+'" value="'+s+'" oninput="B1.calc()"></td>'
+        +'<td><input type="text" inputmode="decimal" autocomplete="off" id="b1r'+i+'" placeholder="?" oninput="B1.calc()"></td>'
         +'<td class="calc" id="b1t'+i+'">–</td></tr>'; }).join('');
     this.calc();
   },
@@ -331,7 +331,7 @@ var B2={
   init:function(){
     document.querySelector('#b2-tbl tbody').innerHTML=this.loads.map(function(s,i){
       return '<tr><td>'+s+'</td>'
-        +'<td><input type="number" step="any" id="b2S'+i+'" placeholder="?" oninput="B2.calc()"></td>'
+        +'<td><input type="text" inputmode="decimal" autocomplete="off" id="b2S'+i+'" placeholder="?" oninput="B2.calc()"></td>'
         +'<td class="calc" id="b2e'+i+'">–</td><td class="calc" id="b2a'+i+'">–</td><td class="calc" id="b2E'+i+'">–</td></tr>'; }).join('');
     this.calc();
   },
@@ -604,6 +604,19 @@ var SEND={
 };
 
 window.addEventListener('load',function(){ B1.init(); B2.init(); SEND.refresh(); setInterval(function(){ SEND.refresh(); },800); });
+</script>
+<script>
+/* Ô nhập số: cho phép số thập phân bằng dấu phẩy (12,5) lẫn dấu chấm (12.5).
+   Dùng type=text + inputmode=decimal (bàn phím số trên điện thoại); mọi dấu phẩy được
+   đổi thành dấu chấm ngay khi gõ nên .value luôn là dạng "12.5" cho các hàm tính toán. */
+document.addEventListener('input',function(e){
+  var el=e.target;
+  if(!el||el.tagName!=='INPUT'||el.getAttribute('inputmode')!=='decimal')return;
+  var v=el.value,pos=el.selectionStart;
+  var n=v.replace(/,/g,'.').replace(/[^0-9.\-+eE]/g,'');
+  var d=n.indexOf('.'); if(d>=0) n=n.slice(0,d+1)+n.slice(d+1).replace(/\./g,'');
+  if(n!==v){el.value=n;try{el.setSelectionRange(pos,pos);}catch(x){}}
+},true);
 </script>
 </body>
 </html>
