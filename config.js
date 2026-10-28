@@ -64,6 +64,9 @@ window.CLASS_LIST = [
   { id: "NV01", name: "NV01" },
   { id: "NV02", name: "NV02" },
   { id: "NV03", name: "NV03" },
+  { id: "LOP_NV_CHDNM11", name: "LOP_NV_CHDNM11" },
+  { id: "LOPNV_CHD11",    name: "LOPNV_CHD11"    },
+  { id: "LOPNV90",        name: "LOPNV90"        },
 ];
 
 // ── Lịch mở/đóng từng bài đánh giá ─────────────────────────────────
