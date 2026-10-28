@@ -97,8 +97,8 @@ window.CHAPTER_SCHEDULE = {
 window.ACCESS_WINDOWS = {
   enabled:  true,
   slots: [
-    { from: "09:00", to: "11:00", label: "Sáng"  },
-    { from: "15:00", to: "16:30", label: "Chiều" },
+    { from: "09:00", to: "12:30", label: "Sáng"  },
+    { from: "15:00", to: "18:30", label: "Chiều" },
   ],
   days:     [0, 1, 2, 3, 4, 5, 6],   // 0=CN, 1=T2 … 6=T7 (bỏ số nào = không mở ngày đó)
   graceMin: 10,
