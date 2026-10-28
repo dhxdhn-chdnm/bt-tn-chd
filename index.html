@@ -403,6 +403,7 @@ footer b { color:rgba(255,255,255,.9); }
       <h2>Nhập thông tin sinh viên để bắt đầu</h2>
     </div>
     <div class="login-body">
+      <div id="access-banner" style="display:none;border-radius:8px;padding:10px 14px;font-size:13px;line-height:1.7;margin-bottom:12px"></div>
       <div class="warn-box">
         ⚠️ <b>Lưu ý:</b> Bài làm <b>không lưu tạm</b> khi đóng tab — hoàn thành và nộp trong một lần.
         Mỗi MSSV chỉ nộp <b>1 lần</b> mỗi bài.<span id="exam-note"></span>
@@ -790,14 +791,42 @@ var ADMIN = {
 var APP = {
   student: null,
 
+  renderAccess:function(){
+    var el=document.getElementById('access-banner'),A=window.NCM_ACCESS;
+    if(!el||!A)return;
+    var st=A.state();
+    if(!st.enabled){el.style.display='none';return;}
+    var head='<b>🕘 Khung giờ làm bài:</b> '+A.windowsText()+'<br>';
+    el.style.display='block';
+    if(st.login){
+      el.style.cssText+=';background:#E8F5E9;border-left:4px solid #2E7D32;color:#1B5E20';
+      el.innerHTML=head+'✅ Đang mở — còn khoảng <b>'+A.fmtDur(st.minLeft*60000)+'</b> trong khung giờ hiện tại.';
+    }else if(st.work){
+      el.style.cssText+=';background:#FFF8E1;border-left:4px solid #FF8F00;color:#4E342E';
+      el.innerHTML=head+'⏳ Đã hết khung giờ — chỉ còn thời gian ân hạn để nộp bài đang làm dở, <b>không đăng nhập mới</b>.';
+    }else{
+      el.style.cssText+=';background:#FFEBEE;border-left:4px solid #C62828;color:#8e1c1c';
+      el.innerHTML=head+'⛔ Đang đóng'+(st.nextMs?' — mở lại lúc <b>'+st.nextLabel+'</b> (còn '+A.fmtDur(st.nextMs-st.now)+')':'')+'.';
+    }
+  },
+
   init:function(){
     var cfg=loadCfg();
+    this.renderAccess();
+    if(window.NCM_ACCESS){
+      var self=this;
+      window.NCM_ACCESS.syncServerTime(function(){self.renderAccess();});
+      setInterval(function(){self.renderAccess();},20000);
+    }
     if(cfg.teacher)document.getElementById('hdr-sub').textContent=cfg.teacher;
     this.populateClasses();
     this.renderGrid();
     this.updateTotalProg();
     try{
       var sv=JSON.parse(sessionStorage.getItem('ncm_sv'));
+      if(sv&&sv.name&&window.NCM_ACCESS&&!window.NCM_ACCESS.state().work){
+        sessionStorage.removeItem('ncm_sv');sv=null;   // ngoài khung giờ → buộc đăng nhập lại
+      }
       if(sv&&sv.name){
         document.getElementById('f-name').value=sv.name||'';
         document.getElementById('f-mssv').value=sv.mssv||'';
@@ -926,6 +955,14 @@ var APP = {
     var classId=document.getElementById('f-class').value;
     var errEl=document.getElementById('login-err');
     errEl.classList.add('hidden');
+    var A=window.NCM_ACCESS;
+    if(A){
+      var ast=A.state();
+      if(ast.enabled&&!ast.login){
+        errEl.textContent='⛔ Ngoài khung giờ đăng nhập ('+A.windowsText()+').'+(ast.nextLabel?' Mở lại lúc '+ast.nextLabel+'.':'');
+        errEl.classList.remove('hidden');this.renderAccess();return;
+      }
+    }
     if(!name){errEl.textContent='⚠️ Vui lòng nhập họ tên.';errEl.classList.remove('hidden');return;}
     if(!mssv){errEl.textContent='⚠️ Vui lòng nhập MSSV.';errEl.classList.remove('hidden');return;}
     if(!/^\d{6,12}$/.test(mssv)){errEl.textContent='⚠️ MSSV phải gồm 6–12 chữ số.';errEl.classList.remove('hidden');return;}

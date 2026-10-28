@@ -85,6 +85,146 @@ window.CHAPTER_SCHEDULE = {
 };
 
 // ═══════════════════════════════════════════════════════
+//  KHUNG GIỜ ĐĂNG NHẬP & LÀM BÀI  (giờ Việt Nam, UTC+7)
+//  ► Áp dụng mỗi ngày cho toàn bộ web (khác CHAPTER_SCHEDULE: lịch từng chương)
+//  ► enabled:false  → TẮT kiểm tra (GV test ngoài giờ)
+//  ► graceMin: số phút "ân hạn" sau khi hết khung — SV đang làm dở vẫn được
+//    hoàn thành & nộp; người mới KHÔNG đăng nhập được ngoài khung.
+//  ► ⚠️ Worker (deploy riêng trên Cloudflare) cũng cần cùng khung giờ để ÉP BUỘC
+//    thật (từ chối nộp ngoài giờ, dùng đồng hồ server) — xem worker_access_patch.js.
+//    Phía web chỉ chặn để SV biết sớm.
+// ═══════════════════════════════════════════════════════
+window.ACCESS_WINDOWS = {
+  enabled:  true,
+  slots: [
+    { from: "09:00", to: "11:00", label: "Sáng"  },
+    { from: "15:00", to: "16:30", label: "Chiều" },
+  ],
+  days:     [0, 1, 2, 3, 4, 5, 6],   // 0=CN, 1=T2 … 6=T7 (bỏ số nào = không mở ngày đó)
+  graceMin: 10,
+};
+
+(function () {
+  var W = window.ACCESS_WINDOWS;
+  var VN = 7 * 3600 * 1000, DAY = 86400000;
+  var offset = 0;                              // lệch đồng hồ server ↔ máy SV
+  var DOW = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+
+  function toMin(s) { var p = String(s).split(':'); return (+p[0]) * 60 + (+p[1] || 0); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function now() { return Date.now() + offset; }
+  function parts(ms) { var d = new Date(ms + VN); return { dow: d.getUTCDay(), min: d.getUTCHours() * 60 + d.getUTCMinutes() }; }
+  function dayOk(dow) { return !W.days || W.days.indexOf(dow) >= 0; }
+
+  // Khung đang mở tại thời điểm ms (cộng thêm `grace` phút sau khi hết), hoặc null
+  function slotAt(ms, grace) {
+    var p = parts(ms);
+    if (!dayOk(p.dow)) return null;
+    for (var i = 0; i < W.slots.length; i++) {
+      var s = W.slots[i];
+      if (p.min >= toMin(s.from) && p.min < toMin(s.to) + (grace || 0)) return s;
+    }
+    return null;
+  }
+  // Lần mở cửa kế tiếp (ms) sau thời điểm ms
+  function nextOpen(ms) {
+    var mid = Math.floor((ms + VN) / DAY) * DAY - VN;
+    for (var d = 0; d < 8; d++) {
+      var base = mid + d * DAY;
+      if (!dayOk(new Date(base + VN).getUTCDay())) continue;
+      var best = null;
+      W.slots.forEach(function (s) {
+        var t = base + toMin(s.from) * 60000;
+        if (t > ms && (best === null || t < best)) best = t;
+      });
+      if (best !== null) return best;
+    }
+    return null;
+  }
+  function label(ms) {
+    var d = new Date(ms + VN), hm = pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes());
+    var d0 = Math.floor((now() + VN) / DAY), d1 = Math.floor((ms + VN) / DAY);
+    if (d1 === d0) return hm + ' hôm nay';
+    if (d1 === d0 + 1) return hm + ' ngày mai';
+    return hm + ' ' + DOW[d.getUTCDay()] + ' ' + pad(d.getUTCDate()) + '/' + pad(d.getUTCMonth() + 1);
+  }
+  function windowsText() {
+    return W.slots.map(function (s) { return (s.label ? s.label + ' ' : '') + s.from + '–' + s.to; }).join(' · ') + ' (giờ VN)';
+  }
+  function fmtDur(ms) {
+    var m = Math.max(0, Math.round(ms / 60000)), h = Math.floor(m / 60);
+    return h ? h + ' giờ ' + (m % 60) + ' phút' : m + ' phút';
+  }
+
+  // login: được ĐĂNG NHẬP mới (trong khung, không ân hạn) · work: được LÀM/NỘP (kể cả ân hạn)
+  function state() {
+    if (!W.enabled) return { enabled: false, login: true, work: true };
+    var t = now(), s0 = slotAt(t, 0), s1 = slotAt(t, W.graceMin || 0);
+    var st = { enabled: true, login: !!s0, work: !!s1, now: t };
+    if (s1) { st.minLeft = toMin(s1.to) - parts(t).min; }        // ≤0 = đang trong ân hạn
+    else { st.nextMs = nextOpen(t); st.nextLabel = st.nextMs ? label(st.nextMs) : null; }
+    return st;
+  }
+
+  // Lấy giờ chuẩn từ Worker (chống chỉnh đồng hồ máy). Lỗi mạng → dùng đồng hồ máy.
+  function syncServerTime(cb) {
+    var done = false;
+    function fin() { if (!done) { done = true; if (cb) cb(); } }
+    if (!W.enabled || !window.WORKER_URL || !window.fetch) return fin();
+    setTimeout(fin, 4000);
+    var t0 = Date.now();
+    fetch(String(window.WORKER_URL).replace(/\/$/, '') + '/time', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { if (d && d.now) offset = d.now + (Date.now() - t0) / 2 - Date.now(); fin(); })
+      .catch(fin);
+  }
+
+  window.NCM_ACCESS = {
+    state: state, windowsText: windowsText, fmtDur: fmtDur,
+    slotAt: slotAt, nextOpen: nextOpen, syncServerTime: syncServerTime
+  };
+
+  // ── Chốt chặn trên các trang bài (trang chủ tự xử lý khi đăng nhập) ──
+  function startGuard() {
+    if (!W.enabled || document.getElementById('login-wrap')) return;
+    var home = new URL('../index.html', location.href).href;
+    var ov = document.createElement('div');
+    ov.id = 'ncm-closed';
+    ov.style.cssText = 'display:none;position:fixed;inset:0;z-index:99999;background:rgba(13,27,42,.94);color:#fff;align-items:center;justify-content:center;padding:24px;font-family:"Plus Jakarta Sans",sans-serif;text-align:center';
+    ov.innerHTML = '<div style="max-width:420px"><div style="font-size:46px">⏸️</div>'
+      + '<h2 style="font-size:20px;margin:8px 0 6px">Ngoài khung giờ làm bài</h2>'
+      + '<p style="font-size:13px;opacity:.8;line-height:1.7">Khung giờ: <b>' + windowsText() + '</b></p>'
+      + '<p id="ncm-closed-next" style="font-size:15px;font-weight:700;margin:12px 0 18px;color:#90CAF9"></p>'
+      + '<a href="' + home + '" style="display:inline-block;background:#1565C0;color:#fff;text-decoration:none;padding:9px 20px;border-radius:8px;font-weight:700;font-size:13px">← Về trang chủ</a></div>';
+    var pill = document.createElement('div');
+    pill.style.cssText = 'display:none;position:fixed;left:14px;bottom:68px;z-index:9000;background:#FF8F00;color:#fff;font:700 12px "Plus Jakarta Sans",sans-serif;padding:7px 13px;border-radius:20px;box-shadow:0 2px 10px rgba(0,0,0,.25)';
+    document.body.appendChild(ov); document.body.appendChild(pill);
+
+    function tick() {
+      var st = state();
+      if (!st.work) {
+        ov.style.display = 'flex'; document.body.style.overflow = 'hidden'; pill.style.display = 'none';
+        document.getElementById('ncm-closed-next').textContent = st.nextLabel
+          ? 'Mở lại lúc ' + st.nextLabel + ' (còn ' + fmtDur(st.nextMs - st.now) + ')' : 'Hiện chưa có lịch mở.';
+        return;
+      }
+      ov.style.display = 'none'; document.body.style.overflow = '';
+      if (st.minLeft > 0 && st.minLeft <= 10) {
+        pill.textContent = '⏰ Còn ' + st.minLeft + ' phút đến hết khung giờ làm bài';
+        pill.style.display = 'block';
+      } else if (st.minLeft <= 0) {
+        pill.textContent = '⏰ Đã hết khung giờ — chỉ còn ' + (st.minLeft + (W.graceMin || 0)) + ' phút để nộp bài';
+        pill.style.display = 'block';
+      } else { pill.style.display = 'none'; }
+    }
+    tick(); setInterval(tick, 5000);
+    syncServerTime(tick);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startGuard);
+  else startGuard();
+})();
+
+// ═══════════════════════════════════════════════════════
 //  VÍ DỤ ĐẶT LỊCH THEO BUỔI TN:
 //
 //  p_ds: { active:true, open:"2026-09-15T07:00:00", close:"2026-09-15T23:59:00", minPct:80 }
