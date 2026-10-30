@@ -575,7 +575,8 @@ var SEND={
     if(!auto&&!confirm(ask)) return;
     var rows=this.buildDetail(ck,gr);
     RECEIPT.make({ma_bai:'bc',tieu_de:'Báo cáo thí nghiệm — kết quả cuối',sv:ck.sv,diem:gr.score,dung:gr.passed,tong:gr.total,giay:0,rows:rows});
-    var payload={ name:ck.sv.name, mssv:ck.sv.mssv, stt:ck.sv.stt, classId:ck.sv.classId, chapterId:'bc',
+    var wire=window.ncmWire?window.ncmWire(ck.sv):{name:ck.sv.name,classId:ck.sv.classId};
+    var payload={ name:wire.name, mssv:ck.sv.mssv, stt:ck.sv.stt, classId:wire.classId, chapterId:'bc',
       score:gr.score, correct:gr.passed, total:gr.total, duration:0, detail:rows };
     this.busy=true; btn.disabled=true; msg.textContent='Đang gửi...';
     var self=this;

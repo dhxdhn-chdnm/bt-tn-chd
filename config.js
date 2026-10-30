@@ -69,6 +69,23 @@ window.CLASS_LIST = [
   { id: "LOPNV90",        name: "LOPNV90"        },
 ];
 
+// ── Ánh xạ lớp khi GỬI KẾT QUẢ ─────────────────────────────────────
+//    Worker / Google Apps Script chỉ nhận các classId nằm trong ALLOWED_CLASSES của chúng.
+//    Lớp nào CHƯA được thêm vào ALLOWED_CLASSES thì khai báo ở đây: web sẽ gửi bằng mã lớp
+//    đã có (vd NV03) và gắn mã lớp thật vào đầu cột Họ tên: "[LOPNV90] Nguyễn Văn A"
+//    → lọc theo tên trong tab NV03. Khi đã thêm lớp vào Worker + Apps Script thì XÓA dòng
+//    tương ứng ở đây để kết quả vào đúng tab riêng của lớp.
+window.CLASS_ALIAS = {
+  LOP_NV_CHDNM11: "NV03",
+  LOPNV_CHD11:    "NV03",
+  LOPNV90:        "NV03"
+};
+window.ncmWire = function (sv) {            // → {name, classId} dùng để gửi lên Worker
+  var cid = String((sv && sv.classId) || ''), nm = String((sv && sv.name) || ''),
+      a = window.CLASS_ALIAS && window.CLASS_ALIAS[cid];
+  return a ? { name: '[' + cid + '] ' + nm, classId: a } : { name: nm, classId: cid };
+};
+
 // ── Lịch mở/đóng từng bài đánh giá ─────────────────────────────────
 //    active : bật/tắt bài
 //    open   : null = mở ngay  |  "2026-09-15T07:00:00" = mở lúc 7h 15/09

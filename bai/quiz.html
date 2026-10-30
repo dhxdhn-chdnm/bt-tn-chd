@@ -454,8 +454,9 @@ var Q = {
     var dur=String(Math.floor(el/60)).padStart(2,'0')+':'+String(el%60).padStart(2,'0');
 
     var url=window.WORKER_URL||'';
+    var wire=window.ncmWire?window.ncmWire(this.sv):{name:this.sv.name,classId:this.sv.classId};
     var payload={
-      name:this.sv.name, mssv:this.sv.mssv, stt:this.sv.stt, classId:this.sv.classId,
+      name:wire.name, mssv:this.sv.mssv, stt:this.sv.stt, classId:wire.classId,
       chapterId:this.id, score:res.score, correct:res.correct, total:res.total,
       duration:el, detail:rows
     };

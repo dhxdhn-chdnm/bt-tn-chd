@@ -647,6 +647,7 @@ function saveCfg(c){try{localStorage.setItem(CFG_KEY,JSON.stringify(c));}catch(e
 // ════════════════════════════════════════
 function sendResult(payload){
   var url=loadCfg().workerUrl;
+  if(window.ncmWire){var w=window.ncmWire(payload);payload=Object.assign({},payload,{name:w.name,classId:w.classId});}
   if(!url){console.warn('[TN] Chưa cấu hình Worker URL.');return Promise.resolve({ok:false});}
   return fetch(url,{
     method:'POST',
