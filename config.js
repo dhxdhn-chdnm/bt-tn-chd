@@ -28,6 +28,14 @@ window.TIME_LIMIT_MIN = 0;
 window.TOTAL_TIME_LIMIT_MIN = 40;
 window.EXAM_ID = "lan1";
 
+// ── Số câu mỗi SV nhận từ NGÂN HÀNG câu hỏi (mỗi bài) ───────────────────
+//    Mọi SV nhận ĐÚNG CÙNG số câu, nhưng bộ câu KHÁC nhau: rút ngẫu nhiên từ ngân hàng
+//    theo STT (cùng STT ⇒ cùng bộ câu, F5 không đổi). Câu tính toán (calc) luôn được giữ.
+//    Bài có phần "nối câu" thì nối câu cộng thêm 1 mục ngoài số này.
+//    Bỏ trống / 0 / lớn hơn số câu trong ngân hàng ⇒ lấy TOÀN BỘ câu của bài.
+//    (ngân hàng hiện có: p_ds 16 · p_oed 11 · c_ds 14 · c_oed 14 câu)
+window.QUIZ_PICK = { p_ds: 10, p_oed: 8, c_ds: 10, c_oed: 10 };
+
 // ── Hiện kết quả cho SINH VIÊN sau khi nộp bài trắc nghiệm? ─────────────
 //    false (mặc định) : SV chỉ thấy "Đã nộp bài" — KHÔNG hiện điểm, số câu đúng, đúng/sai,
 //                       đáp án hay lời giải. Kết quả chỉ nằm trong Google Sheet (cột điểm

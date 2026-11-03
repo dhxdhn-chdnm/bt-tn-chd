@@ -202,7 +202,7 @@ var Q = {
 
     var rand=rng(seedFrom(this.sv.stt+'|'+this.id));
     this.questions=this.set.questions||[];
-    this.order=shuffle(this.questions.map(function(_,i){return i;}),rand);
+    this.order=shuffle(this.pickIndices(),rand);
     var self=this;
     this.calc={};
     this.order.forEach(function(qi){
@@ -223,6 +223,19 @@ var Q = {
       el.textContent=EXAM.fmt(v);
     };
     tick(); setInterval(tick,1000);
+  },
+
+  // Rút N câu từ ngân hàng cho mỗi SV (cùng STT ⇒ cùng bộ câu). Câu tính toán luôn được giữ.
+  pickIndices:function(){
+    var qs=this.questions, all=qs.map(function(_,i){return i;});
+    var n=parseInt((window.QUIZ_PICK||{})[this.id],10);
+    if(!n||n<=0||n>=all.length) return all;
+    var pr=rng(seedFrom(this.sv.stt+'|'+this.id+'|pick'));
+    var calc=all.filter(function(i){return qs[i].type==='calc';});
+    var mcq=all.filter(function(i){return qs[i].type!=='calc';});
+    var keep=shuffle(calc,pr).slice(0,n);
+    if(n>keep.length) keep=keep.concat(shuffle(mcq,pr).slice(0,n-keep.length));
+    return keep;
   },
 
   gate:function(title,msg,showHome){
