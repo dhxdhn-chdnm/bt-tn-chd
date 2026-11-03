@@ -28,6 +28,13 @@ window.TIME_LIMIT_MIN = 0;
 window.TOTAL_TIME_LIMIT_MIN = 40;
 window.EXAM_ID = "lan1";
 
+// ── Hiện kết quả cho SINH VIÊN sau khi nộp bài trắc nghiệm? ─────────────
+//    false (mặc định) : SV chỉ thấy "Đã nộp bài" — KHÔNG hiện điểm, số câu đúng, đúng/sai,
+//                       đáp án hay lời giải. Kết quả chỉ nằm trong Google Sheet (cột điểm
+//                       + chi tiết từng câu) để GV xem.
+//    true             : hiện điểm + đúng/sai + đáp án như trước.
+window.SHOW_RESULT_TO_STUDENT = false;
+
 // ── Chấm tự động trang Báo cáo (5 mục: c, φ, e₀, C_c, C_s) ──
 //    tolPct : dung sai ± % so với giá trị trang tự tính từ số liệu của chính SV
 //    ptsEach: điểm mỗi mục (5 mục × 20 = 100)

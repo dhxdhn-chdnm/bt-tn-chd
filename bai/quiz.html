@@ -390,6 +390,11 @@ var Q = {
     return {correct:correct,total:total,detail:detail,matchOk:matchOk,score:Math.round(correct/total*100)};
   },
 
+  lockInputs:function(){
+    document.querySelectorAll('#qlist input, #qlist select').forEach(function(el){el.disabled=true;});
+    document.querySelectorAll('#qlist .opt').forEach(function(el){el.style.cursor='default';});
+  },
+
   revealAnswers:function(res){
     var self=this;
     res.detail.forEach(function(d){
@@ -461,13 +466,23 @@ var Q = {
       duration:el, detail:rows
     };
     var self=this;
-    RECEIPT.make({ma_bai:this.id,tieu_de:this.set.title,sv:this.sv,diem:res.score,dung:res.correct,tong:res.total,giay:el,rows:rows});
+    var SHOW=(window.SHOW_RESULT_TO_STUDENT===true);
+    // Khi không cho SV xem kết quả: phiếu chỉ ghi bài làm của SV, bỏ điểm / đáp án đúng / đúng-sai
+    var rcRows=SHOW?rows:rows.map(function(r){return {n:r.n,id:r.id,t:r.t,a:r.a};});
+    RECEIPT.make({ma_bai:this.id,tieu_de:this.set.title,sv:this.sv,diem:SHOW?res.score:null,dung:SHOW?res.correct:null,tong:res.total,giay:el,rows:rcRows,hidden:!SHOW});
     var finish=function(sentTxt){
       RECEIPT.data.trang_thai_gui=sentTxt;
-      try{localStorage.setItem('prog_'+self.id,JSON.stringify({done:res.total,total:res.total,score:res.score,ts:Date.now()}));}catch(e){}
-      self.revealAnswers(res);
-      document.getElementById('r-score').textContent=res.score+'%';
-      document.getElementById('r-correct').textContent=res.correct+' / '+res.total;
+      try{localStorage.setItem('prog_'+self.id,JSON.stringify(SHOW?{done:res.total,total:res.total,score:res.score,ts:Date.now()}:{done:res.total,total:res.total,ts:Date.now()}));}catch(e){}
+      if(SHOW){
+        self.revealAnswers(res);
+        document.getElementById('r-score').textContent=res.score+'%';
+        document.getElementById('r-correct').textContent=res.correct+' / '+res.total;
+      }else{
+        self.lockInputs();
+        document.getElementById('r-score').textContent='Đã nộp bài';
+        document.getElementById('r-lbl').textContent='Kết quả do giảng viên công bố';
+        document.getElementById('r-correct').parentNode.style.display='none';
+      }
       document.getElementById('r-time').textContent=dur;
       document.getElementById('r-sent').textContent=sentTxt;
       document.getElementById('result').classList.add('show');
@@ -541,7 +556,7 @@ var RECEIPT={
       sv:{name:o.sv.name, mssv:o.sv.mssv, stt:o.sv.stt, lop:o.sv.classId},
       nop_luc:new Date().toLocaleString('vi-VN'), nop_luc_iso:new Date().toISOString(),
       diem:o.diem, dung:o.dung, tong:o.tong, thoi_gian_lam_s:o.giay, trang_thai_gui:'',
-      chi_tiet:o.rows
+      chi_tiet:o.rows, an_ket_qua:!!o.hidden
     };
   },
   json:function(){
@@ -556,16 +571,21 @@ var RECEIPT={
   print:function(){
     var d=this.data; if(!d) return;
     var esc=this.esc;
+    var hid=!!d.an_ket_qua;
     var rows=(d.chi_tiet||[]).map(function(r){
-      return '<tr><td>'+esc(r.n)+'</td><td>'+esc(r.id)+'</td><td>'+esc(r.a)+'</td><td>'+esc(r.k)+'</td><td>'+esc(r.tol)+'</td><td>'+(r.ok===1?'Đúng':(r.ok===0?'Sai':''))+'</td></tr>';
+      return hid
+        ? '<tr><td>'+esc(r.n)+'</td><td>'+esc(r.id)+'</td><td>'+esc(r.a)+'</td></tr>'
+        : '<tr><td>'+esc(r.n)+'</td><td>'+esc(r.id)+'</td><td>'+esc(r.a)+'</td><td>'+esc(r.k)+'</td><td>'+esc(r.tol)+'</td><td>'+(r.ok===1?'Đúng':(r.ok===0?'Sai':''))+'</td></tr>';
     }).join('');
     var el=document.createElement('div'); el.id='receipt';
     el.innerHTML='<style>#receipt{display:none}@media print{body>*:not(#receipt){display:none!important}#receipt{display:block!important;font:12px/1.45 Arial,sans-serif;color:#000;padding:8mm}#receipt h1{font-size:16px;margin:0 0 8px}#receipt table{width:100%;border-collapse:collapse;margin-top:8px}#receipt th,#receipt td{border:1px solid #444;padding:3px 5px;text-align:left;vertical-align:top}#receipt th{background:#eee}}</style>'
       +'<h1>PHIẾU KẾT QUẢ — '+esc(d.tieu_de)+'</h1>'
       +'<div>Họ tên: <b>'+esc(d.sv.name)+'</b> · MSSV: <b>'+esc(d.sv.mssv)+'</b> · STT: <b>'+esc(d.sv.stt)+'</b> · Lớp: <b>'+esc(d.sv.lop)+'</b></div>'
       +'<div>Mã bài: '+esc(d.ma_bai)+' · Nộp lúc: '+esc(d.nop_luc)+' · Thời gian làm: '+esc(d.thoi_gian_lam_s)+' giây</div>'
-      +'<div>Điểm: <b>'+esc(d.diem)+'</b> · Đúng: <b>'+esc(d.dung)+' / '+esc(d.tong)+'</b> · Trạng thái gửi: '+esc(d.trang_thai_gui)+'</div>'
-      +'<table><thead><tr><th>Câu</th><th>Mã</th><th>Bài làm</th><th>Đáp án đúng</th><th>Dung sai</th><th>Kết quả</th></tr></thead><tbody>'+rows+'</tbody></table>'
+      +(hid?'<div>Số câu: <b>'+esc(d.tong)+'</b> · Trạng thái gửi: '+esc(d.trang_thai_gui)+' · Điểm và đáp án do giảng viên công bố.</div>'
+            :'<div>Điểm: <b>'+esc(d.diem)+'</b> · Đúng: <b>'+esc(d.dung)+' / '+esc(d.tong)+'</b> · Trạng thái gửi: '+esc(d.trang_thai_gui)+'</div>')
+      +(hid?'<table><thead><tr><th>Câu</th><th>Mã</th><th>Bài làm</th></tr></thead><tbody>'+rows+'</tbody></table>'
+            :'<table><thead><tr><th>Câu</th><th>Mã</th><th>Bài làm</th><th>Đáp án đúng</th><th>Dung sai</th><th>Kết quả</th></tr></thead><tbody>'+rows+'</tbody></table>')
       +'<p style="font-size:11px;margin-top:10px">Phiếu do hệ thống tự tạo tại thời điểm nộp, để sinh viên lưu giữ. Dữ liệu gốc do giảng viên lưu.</p>';
     document.body.appendChild(el);
     var done=function(){ if(el.parentNode) el.remove(); window.removeEventListener('afterprint',done); };
