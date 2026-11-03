@@ -141,6 +141,7 @@ main{max-width:820px;margin:0 auto;padding:22px 20px 90px}
       <div class="rrow"><span>Số câu đúng</span><b id="r-correct">0 / 0</b></div>
       <div class="rrow"><span>Thời gian làm</span><b id="r-time">00:00</b></div>
       <div class="rrow"><span>Trạng thái gửi</span><b id="r-sent">–</b></div>
+      <button class="btn btn-line" id="r-retry" style="display:none" onclick="Q.retry()"><i class="ti ti-refresh"></i> Gửi lại kết quả</button>
       <button class="btn btn-line" onclick="RECEIPT.json()"><i class="ti ti-download"></i> Tải phiếu kết quả (.json)</button>
       <button class="btn btn-line" onclick="RECEIPT.print()"><i class="ti ti-printer"></i> In / Lưu PDF phiếu kết quả</button>
       <a class="btn btn-primary" href="../index.html"><i class="ti ti-home"></i> Về trang chủ</a>
@@ -403,6 +404,16 @@ var Q = {
     return {correct:correct,total:total,detail:detail,matchOk:matchOk,score:Math.round(correct/total*100)};
   },
 
+  retry:function(){
+    var b=document.getElementById('r-retry'), s=document.getElementById('r-sent');
+    b.disabled=true; s.textContent='⏳ đang gửi lại...';
+    window.ncmFlush(function(left){
+      b.disabled=false;
+      if(left===0){ s.textContent='✅ đã ghi nhận'; b.style.display='none'; if(RECEIPT.data) RECEIPT.data.trang_thai_gui='✅ đã ghi nhận'; }
+      else { s.textContent='⏳ vẫn chưa gửi được — thử lại sau ít phút'; }
+    });
+  },
+
   lockInputs:function(){
     document.querySelectorAll('#qlist input, #qlist select').forEach(function(el){el.disabled=true;});
     document.querySelectorAll('#qlist .opt').forEach(function(el){el.style.cursor='default';});
@@ -504,13 +515,15 @@ var Q = {
 
     if(!url){ this.barMsg('Chưa cấu hình Worker — điểm chỉ hiện tại chỗ.','err'); finish('⚠ chưa gửi (thiếu cấu hình)'); return; }
     this.barMsg('Đang gửi kết quả...','ok');
-    fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
-      .then(function(r){return r.json().catch(function(){return {ok:r.ok};});})
-      .then(function(d){
-        if(d.ok) finish('✅ đã ghi nhận');
-        else { self.barMsg('Máy chủ: '+(d.error||'lỗi không rõ'),'err'); finish('❌ '+(d.error||'không gửi được')); }
-      })
-      .catch(function(e){ self.barMsg('Lỗi mạng: '+e.message,'err'); finish('❌ lỗi mạng — chụp màn hình báo GV'); });
+    window.ncmSend(payload,function(r){
+      if(r.ok){ finish(r.dup?'✅ đã ghi nhận (đã nộp trước đó)':'✅ đã ghi nhận'); }
+      else if(r.queued){
+        self.barMsg('Chưa gửi được ('+r.error+') — kết quả đã được lưu trên máy và sẽ tự gửi lại.','err');
+        finish('⏳ chưa gửi được — đã lưu, sẽ tự gửi lại');
+        document.getElementById('r-retry').style.display='inline-flex';
+      }
+      else { self.barMsg('Máy chủ: '+(r.error||'lỗi không rõ'),'err'); finish('❌ '+(r.error||'không gửi được')); }
+    });
   },
 
   buildDetail:function(res){

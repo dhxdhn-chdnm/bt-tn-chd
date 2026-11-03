@@ -36,6 +36,63 @@ window.EXAM_ID = "lan1";
 //    (ngân hàng hiện có: p_ds 16 · p_oed 11 · c_ds 14 · c_oed 14 câu)
 window.QUIZ_PICK = { p_ds: 10, p_oed: 8, c_ds: 10, c_oed: 10 };
 
+// ── Gửi kết quả: tự thử lại + hàng đợi lưu trên máy SV ──────────────────
+//    Nếu Worker/Google Sheet lỗi tạm thời (quá tải, mất mạng…), kết quả KHÔNG mất:
+//    web thử lại 3 lần, rồi lưu vào hàng đợi (localStorage) và tự gửi lại mỗi ~45 giây
+//    (kể cả khi SV mở lại trang chủ). Lỗi "dứt khoát" (sai lớp, ngoài giờ, sai dữ liệu)
+//    thì KHÔNG xếp hàng mà báo ngay.
+(function () {
+  var KEY = 'ncm_pending_v1';
+  function load() { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } }
+  function save(a) { try { localStorage.setItem(KEY, JSON.stringify(a)); } catch (e) {} }
+  function once(payload) {
+    return fetch(window.WORKER_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      .then(function (r) {
+        return r.json().catch(function () { return { ok: false }; }).then(function (d) { d = d || {}; d.http = r.status; return d; });
+      })
+      .catch(function (e) { return { ok: false, error: 'Lỗi mạng: ' + e.message, net: true }; });
+  }
+  function definitive(d) { return d.http === 400 || d.http === 403; }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function key(p) { return String(p.mssv) + '|' + String(p.chapterId); }
+
+  // ncmSend(payload, cb) → cb({ok, dup, queued, error})
+  window.ncmSend = function (payload, cb) {
+    var tries = [0, 2500, 6000], i = 0, last = {};
+    (function next() {
+      sleep(tries[i]).then(function () { return once(payload); }).then(function (d) {
+        last = d;
+        if (d.ok) return cb({ ok: true });
+        if (d.http === 409) return cb({ ok: true, dup: true });
+        if (definitive(d)) return cb({ ok: false, error: d.error || ('Lỗi ' + d.http) });
+        if (++i < tries.length) return next();
+        var q = load().filter(function (x) { return key(x.payload) !== key(payload); });
+        q.push({ payload: payload, ts: Date.now() });
+        save(q);
+        cb({ ok: false, queued: true, error: last.error || ('Máy chủ chưa phản hồi' + (last.http ? ' (HTTP ' + last.http + ')' : '')) });
+      });
+    })();
+  };
+  // ncmFlush(cb) → gửi lại hàng đợi; cb(còn_lại)
+  var flushing = false;
+  window.ncmFlush = function (cb) {
+    if (flushing) return cb && cb(load().length);
+    var q = load(); if (!q.length) return cb && cb(0);
+    flushing = true;
+    var left = [];
+    q.reduce(function (p, item) {
+      return p.then(function () { return once(item.payload).then(function (d) {
+        if (!(d.ok || d.http === 409) && !definitive(d)) left.push(item);
+      }); });
+    }, Promise.resolve()).then(function () { save(left); flushing = false; if (cb) cb(left.length); });
+  };
+  window.ncmPending = function () { return load().length; };
+  if (window.fetch) {
+    setTimeout(function () { window.ncmFlush(); }, 4000);
+    setInterval(function () { if (load().length) window.ncmFlush(); }, 45000);
+  }
+})();
+
 // ── Hiện kết quả cho SINH VIÊN sau khi nộp bài trắc nghiệm? ─────────────
 //    false (mặc định) : SV chỉ thấy "Đã nộp bài" — KHÔNG hiện điểm, số câu đúng, đúng/sai,
 //                       đáp án hay lời giải. Kết quả chỉ nằm trong Google Sheet (cột điểm
